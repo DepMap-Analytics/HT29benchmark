@@ -12,7 +12,8 @@ H29R.download_ref_dataset(
       whatToDownload = "FCs",
       destFolder = "./",
       dataRepoURL = "https://cog.sanger.ac.uk/cmp/downloads/crispr_cas9_benchmark/",
-      expNames=c("HT29_c903","HT29_c904","HT29_c905","HT29_c906","HT29_c907","HT29_c908"))
+      expNames=c("HT29_c903","HT29_c904","HT29_c905",
+                 "HT29_c906","HT29_c907","HT29_c908"))
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -48,5 +49,5 @@ Ichcha Manipur & Francesco Iorio (fi1@sanger.ac.uk)
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
-\keyword{function}% use one of  RShowDoc("KEYWORDS")
+\keyword{functions}% use one of  RShowDoc("KEYWORDS")
 \keyword{data management}% __ONLY ONE__ keyword per line
