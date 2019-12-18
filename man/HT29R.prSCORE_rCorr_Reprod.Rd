@@ -9,7 +9,7 @@
 }
 \usage{data("HT29R.replicateCountCorrelationReprod")}
 \format{
-  A list of the following two numerical vectors:
+  A list of two numerical vectors:
   \describe{
     \item{\code{BGscores}}{a numeric vector with 882774 entries, containing the correlation scores obtained by comparing profiles of KY-Library[1]                              specific informative/reproducible sgRNAs depletion fold-changes between all possible pairs of individual replicates across experiments, i.e. background correlation.}
     \item{\code{REPscores}}{a numeric vector with 1766 entries, containing the correlation scores obtained by comparing profiles of KY-Library[1]                              specific informative/reproducible sgRNAs depletion fold-changes between replicates of the same experiment.}
@@ -25,9 +25,11 @@
 library(CRISPRcleanR)
 data(HT29R.prSCORE_rCorr_Reprod)
 
-ccr.multDensPlot(list(density(HT29R.prSCORE_rCorr_Reprod$BGscores),density(HT29R.prSCORE_rCorr_Reprod$REPscores)),
-                 XLIMS = c(0,1),
-                 TITLE = 'Observed vs. Expected replicate correlations from project Score\n',
-                 COLS = c('gray','darkgreen'),LEGentries = c('expected','observed'),XLAB='R')
+ccr.multDensPlot(
+  list(density(HT29R.prSCORE_rCorr_Reprod$BGscores),
+       density(HT29R.prSCORE_rCorr_Reprod$REPscores)),
+  XLIMS = c(0,1),
+  TITLE = 'Observed vs. Expected replicate correlations from project Score\n',
+  COLS = c('gray','darkgreen'),LEGentries = c('expected','observed'),XLAB='R')
 }
 \keyword{datasets}

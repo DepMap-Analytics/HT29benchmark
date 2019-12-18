@@ -42,7 +42,8 @@ Ichcha Manipur & Francesco Iorio (fi1@sanger.ac.uk)
   #### creating a temporary directory
   dir.create('tempDir')
 
-  #### downloading reference sgRNA depletion fold-changes from high-quality HT-29 screens into the temporary directory
+  #### downloading reference sgRNA depletion fold-changes from high-quality
+  #### HT-29 screens into the temporary directory
   HT29R.download_ref_dataset(destFolder = 'tempDir')
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
