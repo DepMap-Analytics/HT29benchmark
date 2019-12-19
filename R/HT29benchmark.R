@@ -7,8 +7,6 @@ HT29R.download_ref_dataset<-function(whatToDownload='FCs',
                                      destFolder='./',
                                      dataRepoURL = "https://cog.sanger.ac.uk/cmp/downloads/crispr_cas9_benchmark/",
                                      expNames=c("HT29_c903","HT29_c904","HT29_c905","HT29_c906","HT29_c907","HT29_c908")){
-
-
   nexp<-length(expNames)
 
   for (i in 1:nexp){
@@ -52,7 +50,7 @@ panel.cor <- function(x, y, digits = 2, prefix = "", cex.cor, ...)
 }
 
 
-H29R.replicateCorr<-function(){
+HT29R.replicateCorr<-function(refDataDir='./'){
 
 
 
