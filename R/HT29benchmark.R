@@ -29,9 +29,81 @@ HT29R.download_ref_dataset<-function(whatToDownload='FCs',
   }
 }
 
+HT29R.replicateCorr_Pscore<-function(refDataDir='./',resDir='./',userFCs=NULL){
+
+
+  fn<-dir(refDataDir)
+  fn<-grep('_foldChanges.Rdata',fn,value=TRUE)
+
+  if (length(fn)==0){
+    stop('No normalised sgRNA depletion fold-changes in a suitable format found in the indicated directory')
+  }
+
+  data(HT29R.prSCORE_rCorr_Reprod)
+  data(HT29R.reproducible_GeneGuides)
+
+  toPlot<-list(Pr.Score_bg=density(HT29R.prSCORE_rCorr_Reprod$BGscores),
+               Pr.Score_repCor=density(HT29R.prSCORE_rCorr_Reprod$REPscores))
+
+
+  pdf(paste(resDir,'/RepCor_Vs_PrScore.pdf',sep=''),5,15)
+  layout(matrix(c(1,1,2,3,4,5,6,7)))
+
+  XLIM<-c(0.3,0.95)
+  ccr.multDensPlot(toPlot,XLIMS = XLIM,TITLE='',COLS=c('gray','darkgreen'),
+                   LEGentries = c('Project Score background',
+                                  'Project Score replicates'),XLAB = 'R')
+
+  if (length(userFCs)>0){
+    fc<-userFCs
+    nr<-ncol(fc)-2
+
+    fc<-fc[,3:ncol(fc)]
+
+    colnames(fc)<-paste('UserData_R',1:ncol(fc),sep='')
+
+    rownames(fc)<-userFCs$sgRNA
+
+    cc<-c(as.dist(cor(fc[HT29R.reproducible_GeneGuides,])))
+
+    points(cc,rep(0,length(cc)),cex=3,pch=21,
+           bg=rgb(0,0,255,maxColorValue = 255,alpha = 120))
+
+    abline(h=0,col='gray')
+
+    legend('topleft',legend = 'User data',inset = c(0,0.15),pt.cex = 3,pch=21,pt.bg=rgb(0,0,255,maxColorValue = 255,alpha = 120),bty = 'n')
+
+    print(as.dist(cor(fc[HT29R.reproducible_GeneGuides,])))
+
+    vv<-c(as.dist(cor(fc[HT29R.reproducible_GeneGuides,])))
+
+    print(paste(length(which(vv>=0.68)),' pair-wise replicate comparisons (out of ',length(vv),') yield correlation scores greater or equal than the QC threshold',sep=''))
+
+  }
+
+  abline(v=0.68)
+
+  lapply(fn,function(x){
+    load(paste(refDataDir,'/',x,sep=''))
+
+    nr<-ncol(foldchanges)-2
+    fc<-foldchanges[,3:ncol(foldchanges)]
+    rownames(fc)<-foldchanges$sgRNA
+
+    cc<-c(as.dist(cor(fc[HT29R.reproducible_GeneGuides,])))
+
+    nn<-str_split(x,'_foldChanges.Rdata')[[1]][1]
+    plot(cc,rep(0,length(cc)),xlim=c(0.3,0.95),cex=3,pch=21,
+         bg=rgb(0,0,255,maxColorValue = 255,alpha = 120),main=nn,frame.plot = FALSE,
+         xaxt='n',yaxt='n',xlab='',ylab='',ylim=c(-1,1),col='white')
+    abline(h=0,col='gray')
+  }
+  )
+
+  dev.off()
+}
 
 ### non documented
-
 
 # non exported
 panel.cor <- function(x, y, digits = 2, prefix = "", cex.cor, ...)
@@ -50,9 +122,4 @@ panel.cor <- function(x, y, digits = 2, prefix = "", cex.cor, ...)
 }
 
 
-HT29R.replicateCorr<-function(refDataDir='./'){
 
-
-
-
-}

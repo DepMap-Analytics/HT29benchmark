@@ -1,6 +1,7 @@
 exportPattern("^[[:alpha:]]+")
 
 export('HT29R.download_ref_dataset')
+export('HT29R.replicateCorr_Pscore')
 
 import(CRISPRcleanR)
 import(stringr)

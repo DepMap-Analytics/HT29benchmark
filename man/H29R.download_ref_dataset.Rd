@@ -19,7 +19,7 @@ H29R.download_ref_dataset(
 \arguments{
   \item{whatToDownload}{
       String parameter specifying what type of data to dowload.
-      Possible values are "FCs" (default) for R objects containing sgRNA normalised depletion fold-changes, and "rawCounts" for plain   .tsv files containing raw sgRNA counts;
+      Possible values are "rawCounts" for plain .tsv files containing raw sgRNA countsare or "FCs" (default) for R objects containing sgRNA normalised depletion fold-changes: data frames in which the first two columns contain sgRNAs' identifiers and HGNC symbols of targete gene, followed by one column per screen replicate containing sgRNAs' fold-changes;
 }
   \item{destFolder}{
       String specifying where the dataset should be saved;
