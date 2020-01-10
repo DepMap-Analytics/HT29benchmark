@@ -2,6 +2,8 @@ exportPattern("^[[:alpha:]]+")
 
 export('HT29R.download_ref_dataset')
 export('HT29R.replicateCorr_Pscore')
+export('HT29R.FC_dist_properties')
 
 import(CRISPRcleanR)
 import(stringr)
+import(RColorBrewer)

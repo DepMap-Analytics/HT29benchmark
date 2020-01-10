@@ -104,6 +104,103 @@ HT29R.replicateCorr_Pscore<-function(refDataDir='./',resDir='./',userFCs=NULL){
 }
 
 ### non documented
+HT29R.FC_dist_properties<-function(refDataDir='./',resDir='./',userFCs=NULL){
+
+  fn<-dir(refDataDir)
+  fn<-grep('_foldChanges.Rdata',fn,value=TRUE)
+
+  if (length(fn)==0){
+    stop('No normalised sgRNA depletion fold-changes in a suitable format found in the indicated directory')
+  }
+
+  nf<-length(fn)
+
+  n <- nf
+  qual_col_pals = brewer.pal.info[brewer.pal.info$category == 'qual',]
+  col_vector = unlist(mapply(brewer.pal, qual_col_pals$maxcolors, rownames(qual_col_pals)))
+  COL<-col_vector[1:n]
+  names(COL)<-fn
+
+
+  data(KY_Library_v1.0)
+  cguides<-rownames(KY_Library_v1.0)
+
+  all_sgRNAs<-lapply(fn,function(x){
+    load(paste(refDataDir,'/',x,sep=''))
+    return(foldchanges$sgRNA)
+  })
+
+  cguides<-Reduce(intersect, all_sgRNAs)
+
+  if(length(userFCs)>1){
+    cguides<-intersect(cguides,userFCs$sgRNA)
+  }
+
+  firstEl<-fn[1]
+
+  par(mfrow=c(1,2))
+
+  par(mar=c(5,4,2,0))
+  allAvgFc<-
+    lapply(fn,function(x){
+      print(x)
+      load(paste(refDataDir,'/',x,sep=''))
+      nr<-ncol(foldchanges)-2
+
+      fc<-foldchanges[match(cguides,foldchanges$sgRNA),3:ncol(foldchanges)]
+      rownames(fc)<-cguides
+      nreps<-ncol(fc)-2
+
+      currentCol<-makeTransparent(COL[x])
+
+      for (j in 1:nreps){
+        if(x==firstEl & j==1){
+          plot(density(fc[,j]),frame.plot=FALSE,xlim=c(-9,3),lwd=5,col=currentCol,main='',xlab='sgRNA fc')
+
+        }else{
+          par(new=TRUE)
+          plot(density(fc[,j]),frame.plot=FALSE,xlim=c(-9,3),lwd=5,xaxt='n',yaxt='n',xlab='',ylab='',col=currentCol,
+               main='')
+        }
+      }
+      fc<-rowMeans(fc)
+      return(fc)
+    }
+    )
+
+  if(length(userFCs)>0){
+    nr<-ncol(userFCs)-2
+
+    for (i in 1:nr){
+      par(new=TRUE)
+
+      plot(density(userFCs[,2+i]),frame.plot=FALSE,xlim=c(-9,3),lwd=1,xaxt='n',yaxt='n',xlab='',ylab='',
+           main='',col='black')
+    }
+
+    legend('topleft','User data',lwd = 1)
+  }
+
+  GlobalFC<-do.call(cbind,allAvgFc)
+  colnames(GlobalFC)<-unlist(lapply(str_split(fn,'_foldChanges.Rdata'),function(x){x[[1]][1]}))
+
+  if(length(userFCs)>0){
+    nr<-ncol(userFCs)-2
+    GlobalFC<-cbind(GlobalFC,rowMeans(userFCs[match(cguides,userFCs$sgRNA),3:(2+nr)]))
+    colnames(GlobalFC)[ncol(GlobalFC)]<-'User data'
+    COL<-c(COL,'black')
+    nf<-nf+1
+  }
+
+  par(mar=c(5,4,0,0))
+
+  tmp<-boxplot(GlobalFC,col=makeTransparent(COL),frame.plot=FALSE,ylab='sgRNA Avg_Rep(FC)',pch=16,
+               pars=list(outcol=makeTransparent(COL)),las=2,cex.axis=0.9,xaxt='n')
+
+  axis(1, at=1:nf, labels=FALSE)
+  text(x=1:nf, y=par()$usr[3]-0.03*(par()$usr[4]-par()$usr[3]),
+       labels=colnames(GlobalFC), srt=45, adj=1, xpd=TRUE)
+}
 
 # non exported
 panel.cor <- function(x, y, digits = 2, prefix = "", cex.cor, ...)
@@ -120,6 +217,16 @@ panel.cor <- function(x, y, digits = 2, prefix = "", cex.cor, ...)
 
   text(0.5, 0.5, txt, cex = cex.cor * r,col=COL)
 }
+makeTransparent <- function(someColor, alpha=100)
+{
+  newColor<-col2rgb(someColor)
+  apply(newColor, 2, function(curcoldata){rgb(red=curcoldata[1], green=curcoldata[2],
+                                              blue=curcoldata[3],alpha=alpha, maxColorValue=255)})
+}
+
+
+
+
 
 
 

@@ -1,5 +1,5 @@
-\name{H29R.download_ref_dataset}
-\alias{H29R.download_ref_dataset}
+\name{HT29R.download_ref_dataset}
+\alias{HT29R.download_ref_dataset}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
   Download reference HT-29 screens data
