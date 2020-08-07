@@ -31,7 +31,6 @@ HT29R.download_ref_dataset<-function(whatToDownload='FCs',
 
 HT29R.replicateCorr_Pscore<-function(refDataDir='./',resDir='./',userFCs=NULL){
 
-
   fn<-dir(refDataDir)
   fn<-grep('_foldChanges.Rdata',fn,value=TRUE)
 
@@ -77,7 +76,8 @@ HT29R.replicateCorr_Pscore<-function(refDataDir='./',resDir='./',userFCs=NULL){
 
     vv<-c(as.dist(cor(fc[HT29R.reproducible_GeneGuides,])))
 
-    print(paste(length(which(vv>=0.68)),' pair-wise replicate comparisons (out of ',length(vv),') yield correlation scores greater or equal than the QC threshold',sep=''))
+    cat(blue(paste(length(which(vv>=0.68)),' pair-wise replicate comparisons (out of ',length(vv),
+              ') yield correlation scores greater or equal than the QC threshold\n',sep='')))
 
   }
 
@@ -121,7 +121,6 @@ HT29R.FC_dist_properties<-function(refDataDir='./',resDir='./',userFCs=NULL){
   COL<-col_vector[1:n]
   names(COL)<-fn
 
-
   data(KY_Library_v1.0)
   cguides<-rownames(KY_Library_v1.0)
 
@@ -143,7 +142,7 @@ HT29R.FC_dist_properties<-function(refDataDir='./',resDir='./',userFCs=NULL){
   par(mar=c(5,4,2,0))
   allAvgFc<-
     lapply(fn,function(x){
-      print(x)
+      cat(paste('loading',x,'\n'))
       load(paste(refDataDir,'/',x,sep=''))
       nr<-ncol(foldchanges)-2
 
@@ -200,6 +199,75 @@ HT29R.FC_dist_properties<-function(refDataDir='./',resDir='./',userFCs=NULL){
   axis(1, at=1:nf, labels=FALSE)
   text(x=1:nf, y=par()$usr[3]-0.03*(par()$usr[4]-par()$usr[3]),
        labels=colnames(GlobalFC), srt=45, adj=1, xpd=TRUE)
+
+
+  abline(h=median(tmp$stats[1,]),col='darkgray',lty=2)
+  abline(h=median(tmp$stats[5,]),col='darkgray',lty=2)
+
+  abline(h=median(tmp$stats[2,]))
+  abline(h=median(tmp$stats[4,]))
+
+  abline(h=median(tmp$stats[3,]),lwd=3)
+
+  abline(h=median(apply(GlobalFC,2,'min')),col='darkgray')
+  abline(h=median(apply(GlobalFC,2,'max')),col='darkgray')
+
+  cat('\n\nReference average sgRNA count FC range:\n')
+
+  ranges<-round(apply(apply(GlobalFC,2,range),1,mean),digits = 2)
+  SE<-round(apply(apply(GlobalFC,2,range),1,sd)/sqrt(ncol(GlobalFC)),digits = 2)
+
+  cat(blue(c(paste(c('min = ','max = '),ranges,' ± ',SE,c(',',''),sep=''))))
+
+
+  if(length(userFCs)>0){
+
+
+
+  }
+
+
+
+
+  # print('range se')
+  # sd(apply(GlobalFC,2,range)[1,], na.rm=TRUE)/sqrt(6)
+  # sd(apply(GlobalFC,2,range)[2,], na.rm=TRUE)/sqrt(6)
+  #
+  # print('average median')
+  # mean(tmp$stats[3,])
+  # print('se')
+  # sd(tmp$stats[3,])/sqrt(6)
+  #
+  # print('average inerquartile range')
+  # apply(tmp$stats[c(2,4),],1,mean)
+  #
+  # print('range se')
+  # apply(tmp$stats[c(2,4),],1,sd)/sqrt(6)
+  #
+  # print('average 10-90 perc. range')
+  # apply(apply(GlobalFC,2,quantile,c(0.10,0.90)),1,'mean')
+  #
+  # print('range se')
+  # apply(apply(GlobalFC,2,quantile,c(0.10,0.90)),1,'sd')/sqrt(6)
+  #
+  #
+  # print('range se')
+  # apply(tmp$stats[c(2,4),],1,sd)/sqrt(6)
+  #
+  # print('average skeweness')
+  # mean(apply(GlobalFC,2,skewness))
+  #
+  # print('range se')
+  # sd(apply(GlobalFC,2,skewness))/sqrt(6)
+  #
+  # print('average kurtosis')
+  # mean(apply(GlobalFC,2,kurtosis))
+  #
+  # print('range se')
+  # sd(apply(GlobalFC,2,kurtosis))/sqrt(6)
+
+
+
 }
 
 # non exported
