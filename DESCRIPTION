@@ -6,6 +6,6 @@ Author: Ichcha Manipur & Francesco Iorio
 Maintainer: Francesco Iorio <Fi9323@gmail.com>
 Description: R package for benchmarking genome-wide CRISPR-Cas9 knock-out viability screening pipelines making use of a reference dataset from six high-quality screens of the HT29 cell line
 License: GPL-2
-Depends: CRISPRcleanR, stringr, RColorBrewer
+Depends: CRISPRcleanR, stringr, RColorBrewer, crayon
 Encoding: UTF-8
 LazyData: true

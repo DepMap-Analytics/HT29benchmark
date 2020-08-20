@@ -5,14 +5,14 @@
   Gene level pair-wise screen replicate correlations and background correlations from Project Score.
 }
 \description{
-  Correlation scores obtained by comparing gene essentiality profiles, considering KY-Library[1] specific informative/reproducible sgRNAs depletion fold-changes between replicates of the same experiment, and between all possible pairs of individual replicates across experiments, from Project Score[2]].
+  Correlation scores obtained by comparing gene essentiality profiles, considering KY-Library[1] specific informative/reproducible sgRNAs depletion fold-changes (averaged on a targeted gene basis) between replicates of the same experiment, and between all possible pairs of individual replicates across experiments, from Project Score[2]].
 }
 \usage{data("HT29R.GL_prSCORE_rCorr")}
 \format{
   A list of two numerical vectors:
   \describe{
-    \item{\code{BGscores}}{a numeric vector with 882774 entries, containing the correlation scores obtained by comparing profiles of KY-Library[1]                              specific informative/reproducible sgRNAs depletion fold-changes between all possible pairs of individual replicates across experiments, i.e. background correlation.}
-    \item{\code{REPscores}}{a numeric vector with 1766 entries, containing the correlation scores obtained by comparing profiles of KY-Library[1]                              specific informative/reproducible sgRNAs depletion fold-changes between replicates of the same experiment.}
+    \item{\code{BGscores}}{a numeric vector with 441387 entries, containing the correlation scores obtained by comparing profiles of KY-Library[1] specific informative/reproducible sgRNAs depletion fold-changes (averaged on a targeted gene basis) between all possible pairs of individual replicates across experiments, i.e. background correlation.}
+    \item{\code{REPscores}}{a numeric vector with 883 entries, containing the correlation scores obtained by comparing profiles of KY-Library[1] specific informative/reproducible sgRNAs depletion fold-changes (avereged on a targeted gene basis) between replicates of the same experiment.}
   }
 }
 \references{
@@ -29,7 +29,7 @@ ccr.multDensPlot(
   list(density(HT29R.GL_prSCORE_rCorr$BGscores),
        density(HT29R.GL_prSCORE_rCorr$REPscores)),
   XLIMS = c(0,1),
-  TITLE = 'Observed vs. Expected replicate correlations from project Score\n',
+  TITLE = 'Project Score Observed vs. Expected replicate correlations\n (Gene level depletion fc, informative sgRNAs only)',
   COLS = c('gray','darkgreen'),LEGentries = c('expected','observed'),XLAB='R')
 }
 \keyword{datasets}
