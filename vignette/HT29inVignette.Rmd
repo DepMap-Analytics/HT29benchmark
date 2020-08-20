@@ -1,0 +1,36 @@
+---
+title: "HT29benchmark Package Vignette"
+author: "Ichcha Manipur & Francesco Iorio"
+date: "23/06/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+Introduction
+
+```{
+#### creating a temporary directory
+  dir.create('tempDir')
+
+  #### downloading reference sgRNA depletion fold-changes from high-quality
+  #### HT-29 screens into the temporary directory
+  HT29R.download_ref_dataset(destFolder = 'tempDir')
+````
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

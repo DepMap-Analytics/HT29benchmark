@@ -5,7 +5,7 @@
   Download reference HT-29 screens data
 }
 \description{
-  This function allows downloading reference datasets from high-quality CRISPR-Cas9 pooled screens of the HT-29 cell line with the KY sgRNA library[1]. This data has been generated through the experimental pipeline described in [2] and it is also public aviable on the Project Score web-site (https://score.depmap.sanger.ac.uk/downloads), part of the Cancer Dependency Map portfolio of tools and resources at the Wellcome Sanger Institute (https://depmap.sanger.ac.uk/).
+  This function allows downloading reference datasets from high-quality CRISPR-Cas9 pooled screens of the HT-29 cell line performed with the KY sgRNA library[1]. This data has been generated through the experimental pipeline described in [2] and it is also public aviable on the Project Score web-site (https://score.depmap.sanger.ac.uk/downloads), part of the Cancer Dependency Map portfolio of tools and resources at the Wellcome Sanger Institute (https://depmap.sanger.ac.uk/).
 }
 \usage{
 H29R.download_ref_dataset(
