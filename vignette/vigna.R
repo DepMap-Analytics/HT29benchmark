@@ -34,16 +34,3 @@ file.remove('ExampleScreen_normCounts.Rdata')
 
 
 
-
-
-### Other figures
-
-load('tempDir/HT29_c903_foldChanges.Rdata')
-
-HT29R.download_ref_dataset(destFolder = 'tempDir',whatToDownload = 'rawCounts')
-
-counts1<-read.table('tempDir/HT29_c903.tsv',stringsAsFactors = FALSE,row.names = 1,header=TRUE)
-
-plot(log10(counts1$HT29_c903R1+0.05),log10(counts1$HT29_c903R2+0.05))
-
-
