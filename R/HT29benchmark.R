@@ -147,6 +147,26 @@ HT29R.evaluate_reps<-function(refDataDir='./',resDir='./',userFCs=NULL, geneLeve
 
 }
 
+HT29R.PhenoIntensity<-function(refDataDir='./',resDir='./',userFCs=NULL, geneLevel=TRUE){
+  data(EssGenes.ribosomalProteins)
+  data(BAGEL_essential)
+  data(BAGEL_nonEssential)
+
+  fn<-dir(refDataDir)
+  fn<-grep('_foldChanges.Rdata',fn,value=TRUE)
+
+  if (length(fn)==0){
+    stop('No normalised sgRNA depletion fold-changes in a suitable format found in the indicated directory')
+  }
+
+  function(x){
+    load(paste(refDataDir,x,sep=''))
+
+  }
+
+
+
+}
 
 
 ### non documented
