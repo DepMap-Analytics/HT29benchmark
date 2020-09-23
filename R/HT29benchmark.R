@@ -147,6 +147,71 @@ HT29R.evaluate_reps<-function(refDataDir='./',resDir='./',userFCs=NULL, geneLeve
 
 }
 
+### non documented
+HT29R.exp_similarity<-function(refDataDir='./',resDir='./',userFCs=NULL){
+
+  data(KY_Library_v1.0)
+  data(HT29R.prSCORE_bkgr_screen_similarity)
+  bgCorr<-HT29R.prSCORE_bkgr_screen_similarity
+
+  if (length(userFCs)>0){
+    gg<-userFCs$sgRNA
+    userFCs<-userFCs[,3:ncol(userFCs)]
+    rownames(userFCs)<-gg
+    userFCs<-apply(userFCs,MARGIN = 1,'mean')
+    userFCs<-ccr.geneMeanFCs(userFCs,KY_Library_v1.0)
+    cgenes<-names(userFCs)
+  }else{
+    cgenes<-unique(KY_Library_v1.0$GENES)
+  }
+
+
+  fn<-dir(refDataDir)
+  fn<-grep('_foldChanges.Rdata',fn,value=TRUE)
+
+  if (length(fn)==0){
+    stop('No normalised sgRNA depletion fold-changes in a suitable format found in the indicated directory')
+  }
+
+  ref_fcs<-lapply(fn,function(x){
+      load(paste(refDataDir,'/',x,sep=''))
+      nr<-ncol(foldchanges)-2
+      fc<-foldchanges[,3:ncol(foldchanges)]
+      rownames(fc)<-foldchanges$sgRNA
+      fc<-apply(fc,MARGIN = 1,FUN = 'mean')
+      fc<-ccr.geneMeanFCs(fc,libraryAnnotation = KY_Library_v1.0)
+      })
+
+  cgenes<-intersect(cgenes,Reduce('intersect',lapply(ref_fcs,'names')))
+
+  ref_fcs<-do.call(cbind,lapply(ref_fcs,function(x){x[cgenes]}))
+
+  obsCorr<-c(as.dist(cor(ref_fcs)))
+
+  toPlot<-list(Score_bg=density(bgCorr),
+               RefScreen_sim=density(obsCorr))
+
+
+  pdf(paste(resDir,'/Screen_sim.pdf',sep=''),5,4)
+
+  ccr.multDensPlot(toPlot,XLIMS = c(0.7,1),TITLE='Screen similarity',COLS=c('gray','darkgreen'),
+                   LEGentries = c('Project Score background',
+                                  'Ref.pair-wise HT29 screens'),XLAB = 'R')
+  if(length(userFCs)>0){
+    ref_fcs<-cbind(userFCs,ref_fcs)
+    userCorrs<-cor(ref_fcs)
+    userCorrs<-userCorrs[1,2:ncol(userCorrs)]
+    points(userCorrs,rep(0,length(userCorrs)),cex=1.5,pch=21,
+           bg=rgb(200,0,255,maxColorValue = 255,alpha = 120))
+    legend('topleft',legend = 'User data',inset = c(0,0.25),
+           pt.cex = 1.5,pch=21,pt.bg=rgb(200,0,255,maxColorValue = 255,alpha = 120),bty = 'n')
+
+  }
+
+  dev.off()
+
+}
+
 HT29R.PhenoIntensity<-function(refDataDir='./',resDir='./',userFCs=NULL, geneLevel=TRUE){
   data(EssGenes.ribosomalProteins)
   data(BAGEL_essential)
@@ -164,12 +229,8 @@ HT29R.PhenoIntensity<-function(refDataDir='./',resDir='./',userFCs=NULL, geneLev
 
   }
 
-
-
 }
 
-
-### non documented
 HT29R.FC_dist_properties<-function(refDataDir='./',resDir='./',userFCs=NULL){
 
   fn<-dir(refDataDir)
