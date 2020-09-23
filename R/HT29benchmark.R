@@ -54,7 +54,12 @@ HT29R.evaluate_reps<-function(refDataDir='./',resDir='./',userFCs=NULL, geneLeve
   toPlot<-list(Pr.Score_bg=density(ScoreCorrs$BGscores),
                Pr.Score_repCor=density(ScoreCorrs$REPscores))
 
-  pdf(paste(resDir,'/RepCor_Vs_PrScore.pdf',sep=''),6,13)
+  if(!geneLevel){
+    pdf(paste(resDir,'/RepCor_Vs_PrScore.pdf',sep=''),6,13)
+  }else{
+    pdf(paste(resDir,'/GL_RepCor_Vs_PrScore.pdf',sep=''),6,13)
+  }
+
   layout(matrix(c(1,1,2,3,4,5,6,7)))
 
   XLIM<-c(0.3,0.95)
@@ -62,10 +67,12 @@ HT29R.evaluate_reps<-function(refDataDir='./',resDir='./',userFCs=NULL, geneLeve
                    LEGentries = c('Project Score background',
                                   'Project Score replicates','Reproducibility Threshold'),XLAB = 'R')
 
+  abline(v=sigTH)
+
   if (length(userFCs)>0){
     fc<-userFCs
-    nr<-ncol(fc)-2
 
+    nr<-ncol(fc)-2
     fc<-fc[,3:ncol(fc)]
 
     colnames(fc)<-paste('UserData_R',1:ncol(fc),sep='')
@@ -137,7 +144,10 @@ HT29R.evaluate_reps<-function(refDataDir='./',resDir='./',userFCs=NULL, geneLeve
   )
 
   dev.off()
+
 }
+
+
 
 ### non documented
 HT29R.FC_dist_properties<-function(refDataDir='./',resDir='./',userFCs=NULL){

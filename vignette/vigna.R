@@ -22,11 +22,28 @@ normANDfcs<-ccr.NormfoldChanges(fn,min_reads=30,EXPname='ExampleScreen',
 ExampleScreen<-normANDfcs$logFCs
 
 ## Evaluating screen reproducibility of HT29 reference and user defined data
-## both, using Project Score criteria
-HT29R.replicateCorr_Pscore(refDataDir = 'tempDir',resDir = 'tempDir',userFCs = ExampleScreen)
+## both, using Project Score criteria, at the sgRNA level
+HT29R.evaluate_reps(refDataDir = '../../tmpFolder/',resDir = '../../resFolder/',userFCs = ExampleScreen,geneLevel = FALSE)
 
 ## Checking results
-system2('open', args = 'tempdir/RepCor_Vs_PrScore.pdf', wait = FALSE)
+system2('open', args = '../../resFolder/RepCor_Vs_PrScore.pdf', wait = FALSE)
+
+## Evaluating screen reproducibility of HT29 reference and user defined data
+## both, using Project Score criteria, at the Gene level
+HT29R.evaluate_reps(refDataDir = '../../tmpFolder/',resDir = '../../resFolder/',userFCs = ExampleScreen)
+
+## Checking results
+system2('open', args = '../../resFolder/GL_RepCor_Vs_PrScore.pdf', wait = FALSE)
+
+
+
+## Evaluating screen reproducibility of HT29 reference and user defined data
+## both, using Project Score criteria, at the sgRNA level
+HT29R.evaluate_reps(refDataDir = '../../tmpFolder/',resDir = '../../resFolder/',geneLevel = FALSE,userFCs = ExampleScreen)
+
+## Checking results
+system2('open', args = '../../resFolder/RepCor_Vs_PrScore.pdf', wait = FALSE)
+
 
 ## Removing Example dataset processed files
 file.remove('ExampleScreen_foldChanges.Rdata')
