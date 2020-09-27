@@ -165,7 +165,6 @@ HT29R.exp_similarity<-function(refDataDir='./',resDir='./',userFCs=NULL){
     cgenes<-unique(KY_Library_v1.0$GENES)
   }
 
-
   fn<-dir(refDataDir)
   fn<-grep('_foldChanges.Rdata',fn,value=TRUE)
 
@@ -185,6 +184,7 @@ HT29R.exp_similarity<-function(refDataDir='./',resDir='./',userFCs=NULL){
   cgenes<-intersect(cgenes,Reduce('intersect',lapply(ref_fcs,'names')))
 
   ref_fcs<-do.call(cbind,lapply(ref_fcs,function(x){x[cgenes]}))
+
 
   obsCorr<-c(as.dist(cor(ref_fcs)))
 
@@ -209,6 +209,9 @@ HT29R.exp_similarity<-function(refDataDir='./',resDir='./',userFCs=NULL){
   }
 
   dev.off()
+
+
+
 
 }
 
