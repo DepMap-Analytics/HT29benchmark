@@ -45,6 +45,15 @@ HT29R.exp_similarity(refDataDir = '../../tmpFolder/',resDir = '../../resFolder/'
 
 ## Checking results
 system2('open', args = '../../resFolder/Screen_sim.pdf', wait = FALSE)
+system2('open', args = '../../resFolder/Sreen_pair_cor.pdf', wait = FALSE)
+
+
+## Evaluating phenotype intensity
+HT29R.PhenoIntensity(refDataDir = '../../tmpFolder/',resDir = '../../resFolder/',userFCs = ExampleScreen)
+
+## Checking results
+system2('open', args = '../../resFolder/allScreens_PhenoIntensity.pdf', wait = FALSE)
+
 
 
 ## Removing Example dataset processed files

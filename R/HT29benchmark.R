@@ -185,40 +185,63 @@ HT29R.exp_similarity<-function(refDataDir='./',resDir='./',userFCs=NULL){
 
   ref_fcs<-do.call(cbind,lapply(ref_fcs,function(x){x[cgenes]}))
 
+  fn<-unlist(lapply(str_split(fn,'_foldChanges.Rdata'),function(x){x[1]}))
+
+  colnames(ref_fcs)<-fn
 
   obsCorr<-c(as.dist(cor(ref_fcs)))
 
   toPlot<-list(Score_bg=density(bgCorr),
                RefScreen_sim=density(obsCorr))
 
+  pdf(paste(resDir,'/Screen_sim.pdf',sep=''),5.23,7.03)
 
-  pdf(paste(resDir,'/Screen_sim.pdf',sep=''),5,4)
+  layout(mat = c(1,1,2))
 
   ccr.multDensPlot(toPlot,XLIMS = c(0.7,1),TITLE='Screen similarity',COLS=c('gray','darkgreen'),
-                   LEGentries = c('Project Score background',
+                                      LEGentries = c('Project Score background',
                                   'Ref.pair-wise HT29 screens'),XLAB = 'R')
+
+  userCorrs<-NULL
+
   if(length(userFCs)>0){
+
     ref_fcs<-cbind(userFCs,ref_fcs)
     userCorrs<-cor(ref_fcs)
     userCorrs<-userCorrs[1,2:ncol(userCorrs)]
     points(userCorrs,rep(0,length(userCorrs)),cex=1.5,pch=21,
            bg=rgb(200,0,255,maxColorValue = 255,alpha = 120))
-    legend('topleft',legend = 'User data',inset = c(0,0.25),
+    legend('topleft',legend = 'User data',inset = c(0,0.10),
            pt.cex = 1.5,pch=21,pt.bg=rgb(200,0,255,maxColorValue = 255,alpha = 120),bty = 'n')
+
+
+    colnames(ref_fcs)[1]<-'User data'
 
   }
 
+  tres<-t.test(bgCorr,obsCorr)
+
+
+  mtitle<-paste('bg Vs ref = ',format(tres$p.value,scientific = TRUE,digits = 2))
+
+  if (length(userFCs)){
+    tres<-t.test(obsCorr,userCorrs)
+    mtitle<-paste(mtitle,', user Vs ref = ',format(tres$p.value,scientific = TRUE, digits= 2,sep=''))
+  }
+
+  boxplot(bgCorr,obsCorr,userCorrs,horizontal = TRUE,ylim=c(0.7,1),col=c('gray','darkgreen',rgb(200,0,255,maxColorValue = 255,alpha = 120)),
+          main=mtitle)
+
   dev.off()
 
-
-
-
+  pdf(paste(resDir,'/Sreen_pair_cor.pdf',sep=''),15,15)
+  pairs(ref_fcs,lower.panel = panel.cor,upper.panel = my.panelSmooth)
+  dev.off()
 }
 
 HT29R.PhenoIntensity<-function(refDataDir='./',resDir='./',userFCs=NULL, geneLevel=TRUE){
-  data(EssGenes.ribosomalProteins)
-  data(BAGEL_essential)
-  data(BAGEL_nonEssential)
+
+
 
   fn<-dir(refDataDir)
   fn<-grep('_foldChanges.Rdata',fn,value=TRUE)
@@ -227,12 +250,78 @@ HT29R.PhenoIntensity<-function(refDataDir='./',resDir='./',userFCs=NULL, geneLev
     stop('No normalised sgRNA depletion fold-changes in a suitable format found in the indicated directory')
   }
 
-  function(x){
-    load(paste(refDataDir,x,sep=''))
 
+  pdf(paste(resDir,'/allScreens_PhenoIntensity.pdf',sep=''),11.88,9.71)
+  par(mfrow=c(3,3))
+
+  RES<-do.call(rbind,lapply(fn,function(x){
+    load(paste(refDataDir,x,sep=''))
+    currentFc<-rowMeans(foldchanges[,3:ncol(foldchanges)])
+    names(currentFc)<-foldchanges$sgRNA
+    HT29R.singleScreen_PhenoIntensity(currentFc,geneLevel = geneLevel,
+                                      expName = unlist(lapply(str_split(x,'_foldChanges.Rdata'),
+                                                              function(y){y[1]})))
+    }))
+
+  if(length(userFCs)>0){
+    currentFc<-rowMeans(userFCs[,3:ncol(userFCs)])
+    names(currentFc)<-foldchanges$sgRNA
+    usrRes<-HT29R.singleScreen_PhenoIntensity(currentFc,geneLevel = geneLevel,
+                                      expName = 'User Data')
   }
 
+  dev.off()
+
 }
+
+
+HT29R.singleScreen_PhenoIntensity<-function(FCprofile, geneLevel=TRUE,expName=NULL){
+  data(EssGenes.ribosomalProteins)
+  data(BAGEL_essential)
+  data(BAGEL_nonEssential)
+
+  data(KY_Library_v1.0)
+
+  if(geneLevel){
+    FCprofile<-ccr.geneMeanFCs(sgRNA_FCprofile = FCprofile,libraryAnnotation = KY_Library_v1.0)
+
+  }else{
+    EssGenes.ribosomalProteins<-rownames(KY_Library_v1.0)[match(EssGenes.ribosomalProteins,KY_Library_v1.0$GENES)]
+    EssGenes.ribosomalProteins<-EssGenes.ribosomalProteins[!is.na(EssGenes.ribosomalProteins)]
+
+    BAGEL_essential<-rownames(KY_Library_v1.0)[match(BAGEL_essential,KY_Library_v1.0$GENES)]
+    BAGEL_essential<-BAGEL_essential[!is.na(BAGEL_essential)]
+
+    BAGEL_nonEssential<-rownames(KY_Library_v1.0)[match(BAGEL_nonEssential,KY_Library_v1.0$GENES)]
+    BAGEL_nonEssential<-BAGEL_nonEssential[!is.na(BAGEL_nonEssential)]
+
+    }
+
+  ribProtFC<-FCprofile[intersect(names(FCprofile),EssGenes.ribosomalProteins)]
+  BagEssFC<-FCprofile[intersect(names(FCprofile),BAGEL_essential)]
+  BagNonEssFC<-FCprofile[intersect(names(FCprofile),BAGEL_nonEssential)]
+
+  toPlot<-list(NonEss=density(BagNonEssFC),
+               Ess=density(BagEssFC),
+               ribProt=density(ribProtFC))
+
+  GD_essential<-abs(mean(BagEssFC)-mean(BagNonEssFC))/sd(BagEssFC)
+  GD_ribProt<-abs(mean(ribProtFC)-mean(BagNonEssFC))/sd(ribProtFC)
+
+
+  ccr.multDensPlot(toPlot,COLS=c('gray','blue','darkblue'),XLIMS = range(FCprofile),XLAB = 'depletion fold-change',
+                   TITLE=paste(expName,'\nGD ess. = ',format(GD_essential,digits = 3),', GD rib.prot. = ',format(GD_ribProt,digits=3)),
+                   LEGentries = c('Non Essential','Essential','Ribosomal Proteins'))
+  abline(v=mean(BagNonEssFC),col='gray')
+  abline(v=mean(BagEssFC),col='blue')
+  abline(v=mean(ribProtFC),col='darkblue')
+
+  res<-data.frame(GD_essential=GD_essential,GD_ribProt=GD_ribProt,stringsAsFactors = FALSE)
+  rownames(res)<-expName
+
+  return(res)
+
+  }
 
 HT29R.FC_dist_properties<-function(refDataDir='./',resDir='./',userFCs=NULL){
 
@@ -415,12 +504,21 @@ panel.cor <- function(x, y, digits = 2, prefix = "", cex.cor, ...)
   txt <- format(c(r, 0.123456789), digits = digits)[1]
   txt <- paste0(prefix, txt)
   if(missing(cex.cor)) cex.cor <- 0.8/strwidth(txt)
-
-  if(r<0.68){COL='red'}
-  else{COL='black'}
-
-  text(0.5, 0.5, txt, cex = cex.cor * r,col=COL)
+  text(0.5, 0.5, txt, cex = cex.cor * r)
 }
+
+my.panelSmooth<-function (x, y, col = 'blue', bg = NA, pch = 16,
+          cex = 1, col.smooth = "red", span = 2/3, iter = 3, ...)
+{
+  par(new = TRUE)
+
+  smoothScatter(x, y, pch = pch, col = col, colramp = colorRampPalette(c('white',col)), cex = cex)
+  ok <- is.finite(x) & is.finite(y)
+  if (any(ok))
+    lines(stats::lowess(x[ok], y[ok], f = span, iter = iter),
+          col = col.smooth, lwd=3,...)
+}
+
 makeTransparent <- function(someColor, alpha=100)
 {
   newColor<-col2rgb(someColor)
