@@ -1,9 +1,9 @@
-#### creating a temporary directory
-##dir.create('tempDir')
+### creating a temporary directory
+dir.create('../../tmpFolder/')
 
-#### downloading reference sgRNA depletion fold-changes from high-quality
-#### HT-29 screens into the temporary directory
-#HT29R.download_ref_dataset(destFolder = 'tempDir')
+### downloading reference sgRNA depletion fold-changes from high-quality
+### HT-29 screens into the temporary directory
+HT29R.download_ref_dataset(destFolder = '../../tmpFolder/')
 
 ## Loading CRISPRcleanR library to use example screen data
 library(CRISPRcleanR)
@@ -15,13 +15,13 @@ fn<-paste(system.file('extdata', package = 'CRISPRcleanR'),'/HT-29_counts.tsv',s
 ## Loading library Annotation
 data('KY_Library_v1.0')
 
-
 ## Loading, median-normalizing and computing fold-changes for the example dataset
 normANDfcs<-ccr.NormfoldChanges(fn,min_reads=30,EXPname='ExampleScreen',
                                 libraryAnnotation = KY_Library_v1.0,
                                 display = FALSE)
 ExampleScreen<-normANDfcs$logFCs
 
+## adding noise to the data
 length <- dim(ExampleScreen)[1] * 3
 noise <- matrix(runif(length, -0.5, 0.5), dim(ExampleScreen)[1])
 ExampleScreen[,3:ncol(ExampleScreen)] <- ExampleScreen[,3:ncol(ExampleScreen)] + noise
