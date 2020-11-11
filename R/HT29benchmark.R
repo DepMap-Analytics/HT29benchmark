@@ -238,10 +238,7 @@ HT29R.exp_similarity<-function(refDataDir='./',resDir='./',userFCs=NULL){
   pairs(ref_fcs,lower.panel = panel.cor,upper.panel = my.panelSmooth)
   dev.off()
 }
-
 HT29R.PhenoIntensity<-function(refDataDir='./',resDir='./',userFCs=NULL, geneLevel=TRUE){
-
-
 
   fn<-dir(refDataDir)
   fn<-grep('_foldChanges.Rdata',fn,value=TRUE)
@@ -249,7 +246,6 @@ HT29R.PhenoIntensity<-function(refDataDir='./',resDir='./',userFCs=NULL, geneLev
   if (length(fn)==0){
     stop('No normalised sgRNA depletion fold-changes in a suitable format found in the indicated directory')
   }
-
 
   pdf(paste(resDir,'/allScreens_PhenoIntensity.pdf',sep=''),11.88,9.71)
   par(mfrow=c(3,3))
@@ -263,18 +259,30 @@ HT29R.PhenoIntensity<-function(refDataDir='./',resDir='./',userFCs=NULL, geneLev
                                                               function(y){y[1]})))
     }))
 
+
   if(length(userFCs)>0){
     currentFc<-rowMeans(userFCs[,3:ncol(userFCs)])
-    names(currentFc)<-foldchanges$sgRNA
+    names(currentFc)<-userFCs$sgRNA
     usrRes<-HT29R.singleScreen_PhenoIntensity(currentFc,geneLevel = geneLevel,
                                       expName = 'User Data')
   }
 
   dev.off()
 
+  pdf(paste(resDir,'/PhenoIntensity_reference.pdf',sep=''),3,7)
+
+  par(mar=c(12,4,1,1))
+  boxplot(list(RES$GD_ribProt,RES$GD_essential),
+          names = c('Ribosomal protein genes','Other essential genes'),
+          ylab='Glass Delta',col=c('darkblue','blue'),border = 'darkgrey',lwd=2,las=2)
+
+  if (length(userFCs)>0){
+    points(c(1,2),c(usrRes$GD_ribProt,usrRes$GD_essential),
+           cex=2,col=rgb(200,0,255,maxColorValue = 255,alpha = 255),pch=16)
+
+  }
+  dev.off()
 }
-
-
 HT29R.singleScreen_PhenoIntensity<-function(FCprofile, geneLevel=TRUE,expName=NULL){
   data(EssGenes.ribosomalProteins)
   data(BAGEL_essential)
@@ -322,6 +330,80 @@ HT29R.singleScreen_PhenoIntensity<-function(FCprofile, geneLevel=TRUE,expName=NU
   return(res)
 
   }
+
+
+
+HT29R.ROCanalysis<-function(refDataDir='./',resDir='./',positives,negatives,userFCs=NULL, geneLevel=TRUE){
+
+  fn<-dir(refDataDir)
+  fn<-grep('_foldChanges.Rdata',fn,value=TRUE)
+
+  if (length(fn)==0){
+    stop('No normalised sgRNA depletion fold-changes in a suitable format found in the indicated directory')
+  }
+
+  pdf(paste(resDir,'/allScreens_ROC_c.pdf',sep=''),18,6)
+  par(mfrow=c(length(fn)/3,6))
+
+  RES<-lapply(fn,function(x){
+    load(paste(refDataDir,x,sep=''))
+    currentFc<-rowMeans(foldchanges[,3:ncol(foldchanges)])
+    names(currentFc)<-foldchanges$sgRNA
+    HT29R.individualROC(currentFc,positives,negatives)
+  })
+
+  dev.off()
+
+  # if(length(userFCs)>0){
+  #   currentFc<-rowMeans(userFCs[,3:ncol(userFCs)])
+  #   names(currentFc)<-userFCs$sgRNA
+  #   usrRes<-HT29R.singleScreen_PhenoIntensity(currentFc,geneLevel = geneLevel,
+  #                                             expName = 'User Data')
+  # }
+
+
+
+  pdf(paste(resDir,'/PhenoIntensity_reference.pdf',sep=''),4,3)
+
+  par(mar=c(12,4,1,1))
+  boxplot(list(RES$GD_ribProt,RES$GD_essential),
+          names = c('Ribosomal protein genes','Other essential genes'),
+          ylab='Glass Delta',col=c('darkblue','blue'),border = 'darkgrey',lwd=2,las=2)
+
+  if (length(userFCs)>0){
+    points(c(1,2),c(usrRes$GD_ribProt,usrRes$GD_essential),
+           cex=2,col=rgb(200,0,255,maxColorValue = 255,alpha = 255),pch=16)
+
+  }
+  dev.off()
+}
+
+HT29R.individualROC<-function(FCprofile, positives,negatives,geneLevel=TRUE,expName=NULL){
+
+  data(KY_Library_v1.0)
+
+  if(geneLevel){
+    FCprofile<-ccr.geneMeanFCs(sgRNA_FCprofile = FCprofile,libraryAnnotation = KY_Library_v1.0)
+
+  }else{
+
+    positives<-rownames(KY_Library_v1.0)[match(positives,KY_Library_v1.0$GENES)]
+    positives<-positives[!is.na(positives)]
+
+    negatives<-rownames(KY_Library_v1.0)[match(negatives,KY_Library_v1.0$GENES)]
+    negatives<-negatives[!is.na(negatives)]
+
+  }
+
+  ROCres<-ccr.ROC_Curve(FCprofile,positives = positives,negatives = negatives,FDRth = 0.05)
+  PRRCres<-ccr.PrRc_Curve(FCprofile,positives = positives,negatives = negatives,FDRth = 0.05)
+
+  return(list(ROCres=ROCres,PRRCres=PRRCres))
+
+}
+
+
+
 
 HT29R.FC_dist_properties<-function(refDataDir='./',resDir='./',userFCs=NULL){
 

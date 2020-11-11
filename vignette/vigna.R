@@ -21,7 +21,7 @@ normANDfcs<-ccr.NormfoldChanges(fn,min_reads=30,EXPname='ExampleScreen',
                                 display = FALSE)
 ExampleScreen<-normANDfcs$logFCs
 
-## adding noise to the data
+## adding some noise to the data
 length <- dim(ExampleScreen)[1] * 3
 noise <- matrix(runif(length, -0.5, 0.5), dim(ExampleScreen)[1])
 ExampleScreen[,3:ncol(ExampleScreen)] <- ExampleScreen[,3:ncol(ExampleScreen)] + noise
@@ -47,14 +47,17 @@ HT29R.exp_similarity(refDataDir = '../../tmpFolder/',resDir = '../../resFolder/'
 system2('open', args = '../../resFolder/Screen_sim.pdf', wait = FALSE)
 system2('open', args = '../../resFolder/Sreen_pair_cor.pdf', wait = FALSE)
 
-
 ## Evaluating phenotype intensity
 HT29R.PhenoIntensity(refDataDir = '../../tmpFolder/',resDir = '../../resFolder/',userFCs = ExampleScreen)
 
 ## Checking results
 system2('open', args = '../../resFolder/allScreens_PhenoIntensity.pdf', wait = FALSE)
+system2('open', args = '../../resFolder/PhenoIntensity_reference.pdf', wait = FALSE)
 
 
+
+currentFc<-rowMeans(ExampleScreen[,3:ncol(ExampleScreen)])
+names(currentFc)<-ExampleScreen$sgRNA
 
 ## Removing Example dataset processed files
 file.remove('ExampleScreen_foldChanges.Rdata')
