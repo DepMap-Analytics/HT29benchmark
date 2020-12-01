@@ -54,10 +54,20 @@ HT29R.PhenoIntensity(refDataDir = '../../tmpFolder/',resDir = '../../resFolder/'
 system2('open', args = '../../resFolder/allScreens_PhenoIntensity.pdf', wait = FALSE)
 system2('open', args = '../../resFolder/PhenoIntensity_reference.pdf', wait = FALSE)
 
+## Detection of depleted sgRNAs targeting essential genes
+
+## Loading reference sets of essential/non-essential genes from the CRISPRcleanR package
+data(BAGEL_essential)
+data(BAGEL_nonEssential)
+
+## Loading KY library annotation from the CRISPRcleanR package
+data(KY_Library_v1.0)
+
+## deriving sgRNAs targeting essential/non-essential genes
+BAGEL_essential_sgRNAs<-ccr.genes2sgRNAs(libraryAnnotation = KY_Library_v1.0,genes = BAGEL_essential)
+BAGEL_nonEssential_sgRNAs<-ccr.genes2sgRNAs(libraryAnnotation = KY_Library_v1.0,genes = BAGEL_nonEssential)
 
 
-currentFc<-rowMeans(ExampleScreen[,3:ncol(ExampleScreen)])
-names(currentFc)<-ExampleScreen$sgRNA
 
 ## Removing Example dataset processed files
 file.remove('ExampleScreen_foldChanges.Rdata')

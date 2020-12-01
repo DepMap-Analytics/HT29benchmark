@@ -331,8 +331,6 @@ HT29R.singleScreen_PhenoIntensity<-function(FCprofile, geneLevel=TRUE,expName=NU
 
   }
 
-
-
 HT29R.ROCanalysis<-function(refDataDir='./',resDir='./',positives,negatives,userFCs=NULL, geneLevel=TRUE){
 
   fn<-dir(refDataDir)
@@ -349,17 +347,37 @@ HT29R.ROCanalysis<-function(refDataDir='./',resDir='./',positives,negatives,user
     load(paste(refDataDir,x,sep=''))
     currentFc<-rowMeans(foldchanges[,3:ncol(foldchanges)])
     names(currentFc)<-foldchanges$sgRNA
-    HT29R.individualROC(currentFc,positives,negatives)
+    ename<-str_split(x,'_foldChanges.Rdata')[[1]][1]
+    HT29R.individualROC(currentFc,positives,negatives,geneLevel = FALSE,expName=ename)
   })
 
   dev.off()
 
-  # if(length(userFCs)>0){
-  #   currentFc<-rowMeans(userFCs[,3:ncol(userFCs)])
-  #   names(currentFc)<-userFCs$sgRNA
-  #   usrRes<-HT29R.singleScreen_PhenoIntensity(currentFc,geneLevel = geneLevel,
-  #                                             expName = 'User Data')
-  # }
+  if(length(userFCs)>0){
+     currentFc<-rowMeans(userFCs[,3:ncol(userFCs)])
+     names(currentFc)<-userFCs$sgRNA
+     if (geneLevel){
+       data(KY_Library_v1.0)
+       currentFc<-ccr.geneMeanFCs(currentFc,KY_Library_v1.0)
+     }
+     pdf(paste(resDir,'/UserData_ROC_c.pdf',sep=''),10,5)
+     par(mfrow=c(1,2))
+     usrRes<-HT29R.individualROC(currentFc,positives,negatives,geneLevel = FALSE,expName='User Data')
+     dev.off()
+  }
+
+
+  plot(0,0,xlim=c(1,0),ylim=c(0,1),col=NA,xlab='TNR',ylab='Recall')
+  abline(1,-1,col='darkgray')
+  lapply(1:length(RES),function(x){
+    lines(RES[[x]]$ROCres$curve[,1],RES[[x]]$ROCres$curve[,2],lwd=5,col=rgb(0,0,255,alpha = 100,maxColorValue = 255))
+    abline(h=RES[[x]]$ROCres$Recall,lty=2,col=rgb(0,0,255,alpha = 100,maxColorValue = 255),lwd=2)
+  })
+
+  if(length(userFCs)>0){
+    lines(usrRes$ROCres$curve[,1],usrRes$ROCres$curve[,2],lwd=2,col=rgb(255,0,255,alpha = 255,maxColorValue = 255))
+    abline(h=usrRes$ROCres$Recall,lty=2,col=rgb(255,0,255,alpha = 255,maxColorValue = 255),lwd=2)
+  }
 
 
 
@@ -387,16 +405,16 @@ HT29R.individualROC<-function(FCprofile, positives,negatives,geneLevel=TRUE,expN
 
   }else{
 
-    positives<-rownames(KY_Library_v1.0)[match(positives,KY_Library_v1.0$GENES)]
+    positives<-rownames(KY_Library_v1.0)[match(positives,rownames(KY_Library_v1.0))]
     positives<-positives[!is.na(positives)]
 
-    negatives<-rownames(KY_Library_v1.0)[match(negatives,KY_Library_v1.0$GENES)]
+    negatives<-rownames(KY_Library_v1.0)[match(negatives,rownames(KY_Library_v1.0))]
     negatives<-negatives[!is.na(negatives)]
 
   }
 
-  ROCres<-ccr.ROC_Curve(FCprofile,positives = positives,negatives = negatives,FDRth = 0.05)
-  PRRCres<-ccr.PrRc_Curve(FCprofile,positives = positives,negatives = negatives,FDRth = 0.05)
+  ROCres<-ccr.ROC_Curve(FCprofile,positives = positives,negatives = negatives,FDRth = 0.05,expName = paste(expName,'ROC'))
+  PRRCres<-ccr.PrRc_Curve(FCprofile,positives = positives,negatives = negatives,FDRth = 0.05,expName = paste(expName,'PrRc'))
 
   return(list(ROCres=ROCres,PRRCres=PRRCres))
 
