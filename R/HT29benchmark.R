@@ -130,8 +130,6 @@ HT29R.FC_distributions <- function(refDataDir='./',resDir='./',userFCs=NULL){
     dev.off()
 }
 
-HT29R.FC_distributions(HT29FCsDir,resultsDir)
-
 HT29R.evaluate_reps <- function(refDataDir='./',resDir='./',userFCs=NULL, geneLevel=TRUE) {
 
 data(HT29R.reproducible_GeneGuides)
@@ -254,7 +252,6 @@ data(HT29R.reproducible_GeneGuides)
         })
     dev.off()
 }
-HT29R.evaluate_reps(HT29FCsDir, resultsDir, USER_FCs, geneLevel = FALSE)
 
 HT29R.exp_similarity <- function(refDataDir='./',resDir='./',userFCs=NULL, geneGuides=c("All","HI"), geneLevel=TRUE){
 
