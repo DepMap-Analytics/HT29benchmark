@@ -158,7 +158,7 @@ HT29R.FC_distributions <- function(refDataDir='./',resDir='./',userFCs=NULL){
 
 HT29R.evaluate_reps <- function(refDataDir='./',resDir='./',userFCs=NULL, geneLevel=TRUE) {
 
-data(HT29R.reproducible_GeneGuides)
+    data(HT29R.reproducible_GeneGuides)
     
     if(!geneLevel){
         data(HT29R.prSCORE_rCorr)
