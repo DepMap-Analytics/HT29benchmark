@@ -1,6 +1,8 @@
+#### CREATE NOISY USER DATA 
 
-# CREATE USER DATA
 refDataDir <- HT29FCsDir
+resDir <- resultsDir
+geneLevel <- TRUE
 
 fn <- dir(refDataDir)
 fn <- grep('.tsv',fn,value=TRUE)
@@ -8,45 +10,54 @@ fn <- grep('.tsv',fn,value=TRUE)
 expData <- lapply(fn,function(x){paste(refDataDir,x,sep='')})
 
 res <- lapply(expData, function(x) {
-    df <- read.table(x, header = TRUE, stringsAsFactors = FALSE, row.names = 1,colClasses = c(gene="NULL",ERS717283.plasmid="NULL"))
-    col <- sample(colnames(df),1)
+    df <- read.table(x, header = TRUE, stringsAsFactors = FALSE,colClasses = c(ERS717283.plasmid="NULL",CRISPR_C6596666.sample="NULL"))
+    col <- sample(grep("HT29", colnames(df), value=TRUE),1)
     return(list(DATAFRAME=df, COLUMN=col))
 })
 
 cguides <- rownames(KY_Library_v1.0)
-cguides <- intersect(cguides, Reduce("intersect", lapply(1:length(res), function(x){rownames(res[[x]]$DATAFRAME)})))
-DF <- do.call(cbind, lapply(1:length(res), function(x){res[[x]]$DATAFRAME[cguides,]}))
-DF <- DF[,unlist(lapply(1:length(res), function(x)res[[x]]$COLUMN))]
-AVG <- rowMeans(DF)
-NOISE <- runif(nrow(USER), min=-1, max=1)
+cguides <- intersect(cguides, Reduce("intersect", lapply(1:length(res), function(x){res[[x]]$DATAFRAME$sgRNA})))
 
-RES <- lapply(1:length(expData), function(x){
-    NORM <- ccr.NormfoldChanges(expData[[x]],  
+DF <- do.call(cbind, lapply(1:length(res), function(x){res[[x]]$DATAFRAME[which(cguides %in% res[[x]]$DATAFRAME$sgRNA),]}))
+DF <- DF[,c("sgRNA", "gene", unlist(lapply(1:length(res), function(x)res[[x]]$COLUMN)))]
+colnames(DF)   
+
+N <- lapply(1:(length(DF)-2), function(x){
+    SD <- sd(DF[,3:ncol(DF)][,x])
+    MU <- mean(DF[,3:ncol(DF)][,x])
+    R <- rnorm(nrow(DF), mean=MU, sd=SD)
+    DF <- as.integer(DF[,3:ncol(DF)][,x] + 0.1*R)
+    })
+
+df <- cbind.data.frame(N)
+df <- cbind(DF[,c("sgRNA", "gene")],df)
+colnames(df) <- colnames(DF)
+colnames(df)
+
+
+
+NormDF <- ccr.NormfoldChanges(Dframe = df,  
                         min_reads = 30, 
                         EXPname = "", 
                         libraryAnnotation = KY_Library_v1.0, 
                         display = FALSE,
                         outdir = resultsDir)
-    NORM <- NORM$logFCs
-})
 
-GUIDES <- Reduce('intersect', lapply(1:length(RES),function(x){RES[[x]]$sgRNA}))
-USER <- do.call(cbind, lapply(1:length(RES), function(x){RES[[x]][which(RES[[x]][,"sgRNA"] %in% GUIDES),]}))
-FCs <- USER[,grep(colnames(USER),pattern="HT29_",fixed = TRUE)]
-FCs <- sapply(FCs, as.numeric)
-AVG <- rowMeans(FCs)
-noise <- runif(nrow(USER), min=-1, max=1)
-NOISE <- AVG + noise*FCs
-USER_FCs <- cbind(USER[,1:2], NOISE)
+NormDF$logFCs %>% head
 
+NormDF <- na.omit(NormDF$logFCs)
+userFCs <- NormDF
 
+df <- sapply(df$logFCs[,3:ncol(df$logFCs)], as.numeric)
+df$logFCs[is.na(df$logFCs)] <- median(df, na.rm=T)
 
-### CREATE BACKGROUND SIMILARITY AND DATA
-##### project score background similarity #####
-# sgRNA level (all) --> got it
-# sgRNA level (most-informative) --> got it
-# gene level (all) --> got it 
-# gene level (most_informative) --> got it
+#### CREATE BACKGROUND SIMILARITY AND DATA
+
+## project score background similarity 
+# sgRNA level (all) 
+# sgRNA level (most-informative) 
+# gene level (all) 
+# gene level (most-informative) 
 
 # load data
 fn <- dir(filesDir)
@@ -76,7 +87,6 @@ HT29R.prSCORE_bkgr_screen_similarity_sgRNAs_HI <- c(as.dist(cor(df)))
 
 save(HT29R.prSCORE_bkgr_screen_similarity_sgRNAs_HI, file="HT29R.prSCORE_bkgr_screen_similarity_sgRNAs_HI.RData")
 
-
 similarityHT29R <- HT29R.prSCORE_bkgr_screen_similarity
 similarity %>% head(10) 
 similarityHT29R %>% head(10)
@@ -93,7 +103,7 @@ ccr.multDensPlot(toPlot,
                     XLAB = 'R')
 dev.off()
 
-# create consensus of guide for ht29 experiments
+# create consensus of guide for the HT29 experiments
 fn <- dir(refDataDir)
 fn <- grep('_foldChanges.Rdata', fn, value=TRUE)
 

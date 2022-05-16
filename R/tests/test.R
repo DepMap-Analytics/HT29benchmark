@@ -38,43 +38,28 @@ for (f in fn) {
 # download data
 HT29R.download_ref_dataset(HT29FCsDir)
 
-# test ccr.MultDensPlot
-ccr.multDensPlot(list(density(HT29R.GL_prSCORE_rCorr$BGscores),
-                    density(HT29R.GL_prSCORE_rCorr$REPscores)),
-                    XLIMS = c(0,1),
-                    TITLE = "Observed vs. Expected replicate correlations from Project Score\n",
-                    COLS = c("grey","darkgreen"),
-                    LEGentries = c("expected", "observed"),
-                    XLAB="R")
-
-# create user FCs (using EPLC-272H cell line and KY Lib 1.0)
-#userScreen <- paste(system.file('extdata', package = 'CRISPRcleanR'),'/EPLC-272H_counts.tsv',sep='') # nolint
+# load KY lib
 pathToKYLib <- paste(system.file('data', package = 'CRISPRcleanR'),'/KY_Library_v1.0.Rdata', sep='')
 load(pathToKYLib)
 
+# test HT29.FC_dist_properties
+HT29R.FC_distributions(refDataDir = HT29FCsDir,
+                          resDir = resultsDir,
+                          userFCs)
 
-expData <- paste(HT29FCsDir, 'HT29_c908.tsv', sep="")
-
-# normalize user FCs
-normANDfcs <- ccr.NormfoldChanges(expData,  
-                                  min_reads = 30, 
-                                  EXPname = "HT29_c908", 
-                                  libraryAnnotation = KY_Library_v1.0, 
-                                  display = FALSE,
-                                  outdir = resultsDir ) 
-
-userFCs <- normANDfcs$logFCs
 
 # test HT29R.evaluate_reps function
 HT29R.evaluate_reps(refDataDir = HT29FCsDir,
                     resDir = resultsDir,
-                    userFCs = USER_FCs,
+                    userFCs = userFCs,
                     geneLevel = FALSE) 
 
 # test HT29.exp_similarity function
 HT29R.exp_similarity(refDataDir = HT29FCsDir, 
                     resDir = resultsDir,
-                    userFCs = USER_FCs)
+                    geneGuides= "All",
+                    geneLevel = FALSE,
+                    userFCs)
 
 # test HT29.PhenoIntensity
 HT29R.PhenoIntensity(refDataDir = HT29FCsDir,
@@ -96,9 +81,9 @@ HT29R.ROCanalysis(refDataDir = HT29FCsDir,
                   geneLevel = TRUE)
 
 # test HT29.FC_dist_properties
-HT29R.FC_dist_properties(refDataDir = HT29FCsDir,
+HT29R.FC_distributions(refDataDir = HT29FCsDir,
                           resDir = resultsDir,
-                          userFCs = USER_FCs)
+                          userFCs)
 
 
 
