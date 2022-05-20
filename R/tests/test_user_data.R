@@ -33,128 +33,6 @@ NormDF <- ccr.NormfoldChanges(Dframe = DF,
 
 UserFCs <- NormDF$logFCs
 
-
-HT29R.FIG2 <- function(refDataDir='./',resDir='./',userFCs=NULL, geneLevel=TRUE) {
-
-    data(HT29R.reproducible_GeneGuides)
-    
-    if(!geneLevel){
-        data(HT29R.prSCORE_rCorr)
-        ScoreCorrs<-HT29R.prSCORE_rCorr
-        sigTH<-0.55
-    }else{
-        data(HT29R.GL_prSCORE_rCorr)
-        ScoreCorrs<-HT29R.GL_prSCORE_rCorr
-        sigTH<-0.68
-        data(KY_Library_v1.0)
-    }
-    
-    fn <- dir(refDataDir)
-    fn <- grep('_foldChanges.Rdata',fn,value=TRUE)
-    
-    if (length(fn)==0){
-        stop('No normalised sgRNA depletion fold-changes in a suitable format found in the indicated directory')
-    }
-    
-    toPlot<-list(Pr.Score_bg=density(ScoreCorrs$BGscores), # all the possible pairwise R corr between replicates across different experiment (i.e. PJSC BACKGROUND)
-           Pr.Score_repCor=density(ScoreCorrs$REPscores)) # pairwise R corr between replicates of the same experiment
-               
-    if(!geneLevel){
-        pdf(paste(resDir,'/QC_REPRODUCIBILITY_sgRNAlevel.pdf',sep=''),5,6)
-    }else{
-        pdf(paste(resDir,'/QC_REPRODUCIBILITY_GENElevel.pdf',sep=''),5,6)
-    }
-
-    layout(matrix(c(1,1,2,3,4,5,6,7)), widths = lcm(12), heights = lcm(6))
-                
-
-    XLIM<-c(0,1.0)
-    ccr.multDensPlot(toPlot,
-                XLIMS = XLIM,
-                 TITLE='',
-                 COLS=c('gray','darkgreen','darkblue'),
-                 LEGentries = c('Project Score background',
-                              'Project Score replicates',
-                              'Reproducibility Threshold'),
-                XLAB = 'R')
-                                  
-    abline(v=sigTH, col = "darkblue", lwd = 3, lty = 2)
-
-  
-    if (!is.null(userFCs)){
-        fc <- userFCs
-        nr <- ncol(fc)-2
-        fc <- fc[,3:ncol(fc)]
-        colnames(fc) <- paste('UserData_R', 1:ncol(fc), sep='')
-        rownames(fc) <- userFCs$sgRNA
-        dataSET <- fc[HT29R.reproducible_GeneGuides,]
-    
-        if(geneLevel){
-            dataSET <- apply(dataSET,MARGIN = 2,function(x){
-                cdata <- x
-                names(cdata)<-rownames(dataSET)
-                ccr.geneMeanFCs(cdata,KY_Library_v1.0)
-            })}
-
-        cc<-c(as.dist(cor(dataSET)))
-
-        points(cc,
-               rep(0,length(cc)),
-               cex=1.5,
-               pch=21,
-               bg=rgb(200,0,255,maxColorValue = 255))
-    
-        }
-
-    vv<-c(as.dist(cor(dataSET)))
-
-    cat(blue(paste(length(which(vv>=sigTH)),' pair-wise replicate comparisons (out of ',length(vv),
-    ') yield correlation scores greater or equal than Project Score QC threshold\n',sep='')))
-  
-    lapply(fn,function(x){ 
-        load(paste(refDataDir,'/',x,sep=''))
-        nr<-ncol(foldchanges)-2     
-        fc<-foldchanges[,3:ncol(foldchanges)]
-        rownames(fc)<-foldchanges$sgRNA
-        dataSET<-fc[HT29R.reproducible_GeneGuides,]
-
-        if(geneLevel){
-            dataSET<-apply(dataSET,MARGIN = 2,function(x){
-                cdata<-x
-                names(cdata)<-rownames(dataSET)
-                ccr.geneMeanFCs(cdata,KY_Library_v1.0)
-            })
-        }
-
-        cc<-c(as.dist(cor(dataSET)))
-
-        nn<-str_split(x,'_foldChanges.Rdata')[[1]][1]
-    
-        par(mar = c(1, 4, 1, 2))  
-        plot(cc,
-            rep(0,length(cc)),
-            xlim=c(0,1),
-            cex=3,
-            pch=21,
-            bg=rgb(0,0,255,maxColorValue = 255,alpha = 120),
-            #main=nn,
-            frame.plot = FALSE,
-            xaxt='n',
-            yaxt='n',
-            xlab='',
-            ylab='',
-            ylim=c(-1,1),
-            col='white')
-
-        abline(h=0,col='gray')
-    
-        #legend("bottomleft",legend=nn)
-    })
-    dev.off()
-}
-
-HT29R.FIG2(HT29FCsDir, resultsDir, UserFCs)
-
 #### CREATE BACKGROUND SIMILARITY AND DATA
 
 ## project score background similarity 
@@ -653,14 +531,17 @@ ggplot(fisher_BP_top, aes(x=FractionGenes, y=reorder(Term, -(classicFisher)), li
 
 dev.off()
 
-HT29R.FC_dist_properties <- function(refDataDir='./',resDir='./',userFCs=NULL){
+
+
+userFCs <- UserFCs
+
+HT29R.FC_distributions <- function(refDataDir='./',resDir='./',userFCs=NULL){
 
     fn<-dir(refDataDir)
     fn<-grep('_foldChanges.Rdata',fn,value=TRUE)
     
     if (length(fn)==0){
-        stop('No normalised sgRNA depletion fold-changes in a suitable format found in the indicated directory')
-        }
+        stop('No normalised sgRNA depletion fold-changes in a suitable format found in the indicated directory')    }
     
     nf <- length(fn)
     n <- nf
@@ -672,15 +553,15 @@ HT29R.FC_dist_properties <- function(refDataDir='./',resDir='./',userFCs=NULL){
     data(KY_Library_v1.0)
     cguides <- rownames(KY_Library_v1.0)
 
-    all_sgRNAs <- lapply(ref_fn,function(x){
-        load(paste(refDataDir,'/',x,sep=''))
-        return(foldchanges$sgRNA)
+    all_sgRNAs <- lapply(fn,function(x){
+            load(paste(refDataDir,'/',x,sep=''))
+            return(foldchanges$sgRNA)
     })
 
     cguides <- Reduce(intersect, all_sgRNAs)
 
     if(!is.null(userFCs)){
-        cguides<-intersect(cguides,userFCs$sgRNA)
+        cguides <- intersect(cguides,userFCs$sgRNA)
     }
 
     firstEl <- fn[1]
@@ -688,7 +569,7 @@ HT29R.FC_dist_properties <- function(refDataDir='./',resDir='./',userFCs=NULL){
     pdf(paste(resDir,'/QC_FCdistproperties.pdf',sep=''),10,6)
     par(mfrow=c(1,2))
 
-    allAvgFc <- lapply(ref_fn,function(x){
+    allAvgFc <- lapply(fn,function(x){
         load(paste(refDataDir,'/',x,sep=''))
         nr <- ncol(foldchanges)-2
         fc <- foldchanges[match(cguides,foldchanges$sgRNA),3:ncol(foldchanges)]
@@ -703,7 +584,7 @@ HT29R.FC_dist_properties <- function(refDataDir='./',resDir='./',userFCs=NULL){
                     lwd=7,
                     col=currentCol,
                     main='',
-                    xlab='sgRNA fc')
+                    xlab='sgRNA log fold-change')
             }else{
                 par(new=TRUE)
                 plot(density(fc[,j]),
@@ -718,6 +599,7 @@ HT29R.FC_dist_properties <- function(refDataDir='./',resDir='./',userFCs=NULL){
                     main='')
                 }
             } 
+    
         fc<-rowMeans(fc)
         return(fc)
     }
@@ -741,8 +623,9 @@ HT29R.FC_dist_properties <- function(refDataDir='./',resDir='./',userFCs=NULL){
         legend('topleft','User data',lwd = 3, bty="n")
     }
 
+
     GlobalFC <- do.call(cbind,allAvgFc)
-    colnames(GlobalFC) <- unlist(lapply(str_split(ref_fn,'_foldChanges.Rdata'),
+    colnames(GlobalFC) <- unlist(lapply(str_split(fn,'_foldChanges.Rdata'),
                                     function(x){x[[1]][1]}))
 
     if(!is.null(userFCs)){
@@ -756,33 +639,32 @@ HT29R.FC_dist_properties <- function(refDataDir='./',resDir='./',userFCs=NULL){
         NC <- ncol(GlobalFC)
     }
 
-    tmp <- boxplot(GlobalFC,
-                    col=makeTransparent(COL),
-                    frame.plot=FALSE,
-                    ylab='sgRNA Avg FC',
-                    pch=16,
-                    pars=list(outcol=makeTransparent(COL)),
-                    las=2,
-                    cex.axis=0.9,
-                    xaxt='n')
+    tmp <- vioplot(GlobalFC,
+                col=makeTransparent(COL),
+                frame.plot=FALSE,
+                ylab='Avg sgRNA log fold-change',
+                pch=16,
+                pars=list(outcol=makeTransparent(COL)),
+                las=2,
+                cex.axis=0.9,
+                xaxt='n')
 
     axis(1, at=1:nf, labels=FALSE)
     text(x=1:nf,y=par()$usr[3]-0.03*(par()$usr[4]-par()$usr[3]),
-        labels=colnames(GlobalFC),srt=45, adj=1, xpd=TRUE)
+    labels=colnames(GlobalFC),srt=45, adj=1, xpd=TRUE)
 
-    abline(h=median(tmp$stats[1,1:NC]),col='darkgray',lty=2)
-    abline(h=median(tmp$stats[5,1:NC]),col='darkgray',lty=2)
-
-    abline(h=median(tmp$stats[2,1:NC]),col='darkgray')
-    abline(h=median(tmp$stats[4,1:NC]),col='darkgray')
-
-    abline(h=median(tmp$stats[3,1:NC]),lwd=3,col='darkgray')
-    abline(h=median(apply(GlobalFC[,1:NC],2,'min')),col='darkgray')
-    abline(h=median(apply(GlobalFC[,1:NC],2,'max')),col='darkgray')
+    abline(h=median(tmp$median), col='darkgray')
+    abline(h=median(tmp$q1),col='darkgray',lty=2)
+    abline(h=median(tmp$q3),col='darkgray', lty=2)
+    abline(h=median(tmp$lower),col='darkgray', lty=2)
+    abline(h=median(tmp$upper),col='darkgray', lty=2)
+    abline(h=median(apply(GlobalFC,2,'min')),col='darkgray')
+    abline(h=median(apply(GlobalFC,2,'max')),col='darkgray')
 
     dev.off()
 }
 
+HT29R.FC_distributions(HT29FCsDir,resultsDir, UserFCs)
 
 stats <- describe(GlobalFC, quant=c(.1,.25,.75,.90))
 
