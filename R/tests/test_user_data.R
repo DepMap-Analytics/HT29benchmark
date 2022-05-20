@@ -1,55 +1,167 @@
-#### CREATE NOISY USER DATA 
+#### LOAD and NORMALIZE USER DATA 
 
-refDataDir <- HT29FCsDir
-resDir <- resultsDir
-geneLevel <- TRUE
+dir <- "/Users/raffaele.iannuzzi/Documents/Project-HT29/OneDrive_1_5-19-2022"
+fn <- dir(dir)
 
-fn <- dir(refDataDir)
-fn <- grep('.tsv',fn,value=TRUE)
+userData <- lapply(fn,function(x){paste(dir,x,sep='/')})
 
-expData <- lapply(fn,function(x){paste(refDataDir,x,sep='')})
-
-res <- lapply(expData, function(x) {
-    df <- read.table(x, header = TRUE, stringsAsFactors = FALSE,colClasses = c(ERS717283.plasmid="NULL",CRISPR_C6596666.sample="NULL"))
-    col <- sample(grep("HT29", colnames(df), value=TRUE),1)
-    return(list(DATAFRAME=df, COLUMN=col))
+DF <- lapply(userData, function(x) {
+    if (x == paste(dir, fn[[1]], sep="/")) {
+        read.table(x, header = TRUE, stringsAsFactors = FALSE) }
+    else {
+        read.table(x, header = TRUE, stringsAsFactors = FALSE, colClasses = c(gene="NULL",ERS717283.plasmid="NULL"))}
 })
 
 cguides <- rownames(KY_Library_v1.0)
-cguides <- intersect(cguides, Reduce("intersect", lapply(1:length(res), function(x){res[[x]]$DATAFRAME$sgRNA})))
+cguides <- intersect(cguides, Reduce("intersect", lapply(1:length(DF), function(x){DF[[x]]$sgRNA})))
 
-DF <- do.call(cbind, lapply(1:length(res), function(x){res[[x]]$DATAFRAME[which(cguides %in% res[[x]]$DATAFRAME$sgRNA),]}))
-DF <- DF[,c("sgRNA", "gene", unlist(lapply(1:length(res), function(x)res[[x]]$COLUMN)))]
-colnames(DF)   
+DF <- do.call(cbind, lapply(1:length(DF), function(x){DF[[x]][which(cguides %in% DF[[x]]$sgRNA),]}))
+DF[,c(5,7,9,11,13)] <- NULL
+COLS <- colnames(DF)[5:ncol(DF)]
+DF <- DF[,c("sgRNA", "gene", "ERS717283.plasmid", "X3980STDY6393091.sample", COLS)]
 
-N <- lapply(1:(length(DF)-2), function(x){
-    SD <- sd(DF[,3:ncol(DF)][,x])
-    MU <- mean(DF[,3:ncol(DF)][,x])
-    R <- rnorm(nrow(DF), mean=MU, sd=SD)
-    DF <- as.integer(DF[,3:ncol(DF)][,x] + 0.1*R)
-    })
-
-df <- cbind.data.frame(N)
-df <- cbind(DF[,c("sgRNA", "gene")],df)
-colnames(df) <- colnames(DF)
-colnames(df)
+colnames(DF)[4:ncol(DF)] <- c("HT29_c920R1", "HT29_c920R2", "HT29_c920R3",
+                                 "HT29_c920R4","HT29_c920R5", "HT29_c920R6")
 
 
-
-NormDF <- ccr.NormfoldChanges(Dframe = df,  
+NormDF <- ccr.NormfoldChanges(Dframe = DF,  
                         min_reads = 30, 
                         EXPname = "", 
                         libraryAnnotation = KY_Library_v1.0, 
-                        display = FALSE,
+                        display = TRUE,
                         outdir = resultsDir)
 
-NormDF$logFCs %>% head
+UserFCs <- NormDF$logFCs
 
-NormDF <- na.omit(NormDF$logFCs)
-userFCs <- NormDF
 
-df <- sapply(df$logFCs[,3:ncol(df$logFCs)], as.numeric)
-df$logFCs[is.na(df$logFCs)] <- median(df, na.rm=T)
+HT29R.FIG2 <- function(refDataDir='./',resDir='./',userFCs=NULL, geneLevel=TRUE) {
+
+    data(HT29R.reproducible_GeneGuides)
+    
+    if(!geneLevel){
+        data(HT29R.prSCORE_rCorr)
+        ScoreCorrs<-HT29R.prSCORE_rCorr
+        sigTH<-0.55
+    }else{
+        data(HT29R.GL_prSCORE_rCorr)
+        ScoreCorrs<-HT29R.GL_prSCORE_rCorr
+        sigTH<-0.68
+        data(KY_Library_v1.0)
+    }
+    
+    fn <- dir(refDataDir)
+    fn <- grep('_foldChanges.Rdata',fn,value=TRUE)
+    
+    if (length(fn)==0){
+        stop('No normalised sgRNA depletion fold-changes in a suitable format found in the indicated directory')
+    }
+    
+    toPlot<-list(Pr.Score_bg=density(ScoreCorrs$BGscores), # all the possible pairwise R corr between replicates across different experiment (i.e. PJSC BACKGROUND)
+           Pr.Score_repCor=density(ScoreCorrs$REPscores)) # pairwise R corr between replicates of the same experiment
+               
+    if(!geneLevel){
+        pdf(paste(resDir,'/QC_REPRODUCIBILITY_sgRNAlevel.pdf',sep=''),5,6)
+    }else{
+        pdf(paste(resDir,'/QC_REPRODUCIBILITY_GENElevel.pdf',sep=''),5,6)
+    }
+
+    layout(matrix(c(1,1,2,3,4,5,6,7)), widths = lcm(12), heights = lcm(6))
+                
+
+    XLIM<-c(0,1.0)
+    ccr.multDensPlot(toPlot,
+                XLIMS = XLIM,
+                 TITLE='',
+                 COLS=c('gray','darkgreen','darkblue'),
+                 LEGentries = c('Project Score background',
+                              'Project Score replicates',
+                              'Reproducibility Threshold'),
+                XLAB = 'R')
+                                  
+    abline(v=sigTH, col = "darkblue", lwd = 3, lty = 2)
+
+  
+    if (!is.null(userFCs)){
+        fc <- userFCs
+        nr <- ncol(fc)-2
+        fc <- fc[,3:ncol(fc)]
+        colnames(fc) <- paste('UserData_R', 1:ncol(fc), sep='')
+        rownames(fc) <- userFCs$sgRNA
+        dataSET <- fc[HT29R.reproducible_GeneGuides,]
+    
+        if(geneLevel){
+            dataSET <- apply(dataSET,MARGIN = 2,function(x){
+                cdata <- x
+                names(cdata)<-rownames(dataSET)
+                ccr.geneMeanFCs(cdata,KY_Library_v1.0)
+            })}
+
+        cc<-c(as.dist(cor(dataSET)))
+
+        points(cc,
+               rep(0,length(cc)),
+               cex=1.5,
+               pch=21,
+               bg=rgb(200,0,255,maxColorValue = 255))
+    
+        #legend(x=0,
+        #       y=max(toPlot$Pr.Score_repCor$y) - 0.5,
+        #       legend = 'User data',
+        #       inset = c(0,0.25),
+        #       pt.cex = 2,
+        #       pch=21,            
+        #       pt.bg=rgb(200,0,255,maxColorValue = 255,alpha = 255),
+        #       bty = 'n')
+        }
+
+    vv<-c(as.dist(cor(dataSET)))
+
+    cat(blue(paste(length(which(vv>=sigTH)),' pair-wise replicate comparisons (out of ',length(vv),
+    ') yield correlation scores greater or equal than Project Score QC threshold\n',sep='')))
+  
+    lapply(fn,function(x){ 
+        load(paste(refDataDir,'/',x,sep=''))
+        nr<-ncol(foldchanges)-2     
+        fc<-foldchanges[,3:ncol(foldchanges)]
+        rownames(fc)<-foldchanges$sgRNA
+        dataSET<-fc[HT29R.reproducible_GeneGuides,]
+
+        if(geneLevel){
+            dataSET<-apply(dataSET,MARGIN = 2,function(x){
+                cdata<-x
+                names(cdata)<-rownames(dataSET)
+                ccr.geneMeanFCs(cdata,KY_Library_v1.0)
+            })
+        }
+
+        cc<-c(as.dist(cor(dataSET)))
+
+        nn<-str_split(x,'_foldChanges.Rdata')[[1]][1]
+    
+        par(mar = c(1, 4, 1, 2))  
+        plot(cc,
+            rep(0,length(cc)),
+            xlim=c(0,1),
+            cex=3,
+            pch=21,
+            bg=rgb(0,0,255,maxColorValue = 255,alpha = 120),
+            #main=nn,
+            frame.plot = FALSE,
+            xaxt='n',
+            yaxt='n',
+            xlab='',
+            ylab='',
+            ylim=c(-1,1),
+            col='white')
+
+        abline(h=0,col='gray')
+    
+        #legend("bottomleft",legend=nn)
+    })
+    dev.off()
+}
+
+HT29R.FIG2(HT29FCsDir, resultsDir, UserFCs)
 
 #### CREATE BACKGROUND SIMILARITY AND DATA
 
@@ -71,7 +183,6 @@ for (f in fn) {
 PathToDownload <- "/Users/raffaele.iannuzzi/Downloads/"
 
 fn <- "EssentialityMatrices/00_logFCs.tsv" # genes x cells
-
 fn <- 'Sanger_corrected_sgRNA_logFCs.tsv' # sgRNAs x cells
 
 
@@ -421,7 +532,7 @@ HT29R.FDR_consensus <- function(refDataDir="./", resDir="./", userFCs=NULL, dist
     return(list(Pos=FDR5_Positives, Neg=FDR5_Negatives, Universe=cgenes))
 }
 
-res <- HT29R.FDR_consensus(HT29FCsDir,resultsDir,USER_FCs,distance="Cohen's")
+res <- HT29R.FDR_consensus(HT29FCsDir,resultsDir, UserFCs, distance="Cohen's")
 
 
 install.packages("VennDiagram")
@@ -474,6 +585,23 @@ library(org.Hs.eg.db)
 
 genes <- res$Pos
 
+
+# USING cluster Profiler
+install.packages("clusterProfiler")
+library(clusterProfiler)
+library(enrichplot)
+
+BPmapping <- annFUN.org("BP", mapping = "org.Hs.eg.db", ID = "symbol") 
+
+genesUniverse <- unique(unlist(BPmapping))
+
+GO <- enrichGO(gene = genes, keyType = "SYMBOL", universe = genesUniverse, ont="BP", OrgDb = "org.Hs.eg.db")
+
+png(paste(resultsDir,"GO.png"), width=8*300, height=6*300, res=300, pointsize=8)
+dotplot(GO, showCategory=10)
+dev.off()
+##########
+
 # MAPPING
 BPmapping <- annFUN.org("BP", mapping = "org.Hs.eg.db", ID = "symbol") 
 
@@ -521,7 +649,7 @@ for (i in 1:length(SignificantGenes)) {
 }
 
 
-png("topGO.png", width=8*300, height=5*300, res=300, pointsize=8)
+png(paste(resultsDir,"topGO.png"), width=8*300, height=6*300, res=300, pointsize=8)
 ggplot(fisher_BP_top, aes(x=FractionGenes, y=reorder(Term, -(classicFisher)), limit(0,10))) +
   geom_point(data = head(fisher_BP_top,30), aes(color=classicFisher, size=as.factor(Significant))) +
   scale_color_gradientn(colours = c("red", "blue", "lightblue"), name="p-Value\n") +
@@ -712,6 +840,8 @@ cat(paste('Kurtosis: ', round(userStats[,8], digits=3), sep=""),'\n')
  #   }
 
 #dev.off()
+
+
 
 
 
