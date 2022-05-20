@@ -104,14 +104,6 @@ HT29R.FIG2 <- function(refDataDir='./',resDir='./',userFCs=NULL, geneLevel=TRUE)
                pch=21,
                bg=rgb(200,0,255,maxColorValue = 255))
     
-        #legend(x=0,
-        #       y=max(toPlot$Pr.Score_repCor$y) - 0.5,
-        #       legend = 'User data',
-        #       inset = c(0,0.25),
-        #       pt.cex = 2,
-        #       pch=21,            
-        #       pt.bg=rgb(200,0,255,maxColorValue = 255,alpha = 255),
-        #       bty = 'n')
         }
 
     vv<-c(as.dist(cor(dataSET)))
