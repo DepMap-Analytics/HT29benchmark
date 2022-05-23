@@ -7,15 +7,17 @@ output:
   pdf_document: default
 ---
 
-The code adopted to produce this report is an elaboration of the code already embedded in the present package.
 In order to generate this report, the system will look for the following Project Score embedded data:
 
 * HT29R.expNames
-* HT29R.GL_prSCORE_rCorr.Rdata                
-* HT29R.prSCORE_rCorr.Rdata
-* HT29R.prSCORE_bkgr_screen_similarity_repGenes.Rdata
-* HT29R.prSCORE_bkgr_similarity.Rdata
+* HT29R.GL_prSCORE_rCorr.RData                
+* HT29R.prSCORE_rCorr.RData
+* HT29R.prSCORE_bkgr_screen_similarity.RData
+* HT29R.prSCORE_bkgr_screen_similarity_HI.RData
+* HT29R.prSCORE_bkgr_screen_similarity_sgRNA.RData
+* HT29R.prSCORE_bkgr_screen_similarity_sgRNA_HI.RData
 * HT29R.reproducible_GeneGuides.Rdata
+* HT29R.consensus_GeneGuides.RData
 
 ```{r include=FALSE}
 
@@ -28,6 +30,14 @@ library(psych)
 library(devtools)
 library(CRISPRcleanR)
 library(RColorBrewer)
+library(vioplot)
+library(data.table)
+library(reshape2)
+library(VennDiagram)
+library(clusterProfiler)
+library(enrichplot)
+library(org.Hs.eg.db)
+library(topGO)
 ```
 
 ## Set path to files and directories
@@ -37,6 +47,7 @@ library(RColorBrewer)
 path_to_dir ='/Users/raffaele.iannuzzi/Documents/Project-HT29/'
 filesDir = paste(path_to_dir,'/HT29benchmark/data/', sep="")
 HT29FCsDir = paste(path_to_dir, '/user_data/HT29FCsDATA/', sep="")
+resultsDir <- "/Users/raffaele.iannuzzi/Documents/Project-HT29/resDir/"
 source(paste(path_to_dir, '/HT29benchmark/R/HT29benchmark.R', sep=""))
 ```
 
@@ -49,7 +60,7 @@ path_to_KYLib <- paste(system.file('data', package = 'CRISPRcleanR'),
                        '/KY_Library_v1.0.Rdata', 
                        sep="")
 
-if (!is.null(fn) & length(fn) == 6) {
+if (!is.null(fn) & length(fn) == 10) {
   for (f in fn) {
     cat(paste('loading',f,'\n'))
     cat('...Done!\n')
@@ -73,7 +84,7 @@ if (!is.null(path_to_KYLib)) {
 
 #### Download sgRNA raw counts or depletion FCs data
 
-```{r echo=FALSE}
+```{r eval=FALSE, include=FALSE}
 
 HT29R.download_ref_dataset(HT29FCsDir,whatToDownload = "rawCounts" )
 ```
@@ -89,12 +100,12 @@ ref_fn <- grep('_foldChanges.Rdata',ref_fn,value=TRUE)
 #### Using HT29_c907 experiment as an example data
 
 ```{r}
-expData <- paste(HT29FCsDir, 'HT29_c907.tsv', sep="")
+expData <- paste(HT29FCsDir, 'User_data.tsv', sep="")
 ```
 
 ## User data preprocessing
 
-#### Normalize data using CRISPRcleanR package function
+#### Normalize data using CRISPRcleanR package 'NormfoldChanges' function
 
 ```{r echo=TRUE}
 expData <- ccr.NormfoldChanges(expData,
@@ -104,154 +115,22 @@ expData <- ccr.NormfoldChanges(expData,
                     display = FALSE)
 ```
 
-## sgRNAs depletion log FCs statistics 
+## sgRNAs depletion statistics 
 
-Average parameters and confidence intervals of the distribution of sgRNA log FCs observed when screening HT29 with reagent and experimental settings described in Behan et al. 2019 and User defined screen parameters.
-
-```{r echo=FALSE}
-
-plot.sgRNAFCDist <- function(refDataDir='./',userFCs=NULL){
-
-  nf<-length(ref_fn)
-  n <- nf
-  qual_col_pals = brewer.pal.info[brewer.pal.info$category == 'qual',]
-  col_vector = unlist(mapply(brewer.pal, qual_col_pals$maxcolors, rownames(qual_col_pals)))
-  COL<-col_vector[1:n]
-  names(COL)<-ref_fn
-
-  data(KY_Library_v1.0)
-  cguides<-rownames(KY_Library_v1.0)
-
-  all_sgRNAs<-lapply(ref_fn,function(x){
-    load(paste(refDataDir,'/',x,sep=''))
-    return(foldchanges$sgRNA)
-  })
-
-  cguides<-Reduce(intersect, all_sgRNAs)
-
-  if(length(userFCs)>0){
-    cguides<-intersect(cguides,userFCs$sgRNA)
-  }
-
-  firstEl<-ref_fn[1]
-
-  allAvgFc<-
-    lapply(ref_fn,function(x){
-      load(paste(refDataDir,'/',x,sep=''))
-      nr <- ncol(foldchanges)-2
-      fc <- foldchanges[match(cguides,foldchanges$sgRNA),3:ncol(foldchanges)]
-      rownames(fc)<-cguides
-      nreps<-ncol(fc)-2
-
-      currentCol<-makeTransparent(COL[x])
-
-      for (j in 1:nreps){
-        if(x==firstEl & j==1){
-          plot(density(fc[,j]),
-               frame.plot=FALSE,
-               xlim=c(-9,3),
-               lwd=7,
-               col=currentCol,
-               main='',
-               xlab='sgRNA fc')
-
-        }else{
-          par(new=TRUE)
-          plot(density(fc[,j]),
-               frame.plot=FALSE,
-               xlim=c(-9,3),
-               lwd=7,
-               xaxt='n',
-               yaxt='n',
-               xlab='',
-               ylab='',
-               col=currentCol,
-               main='')
-        }
-      }
-      fc<-rowMeans(fc)
-      return(fc)
-    }
-    )
-
-  if(length(userFCs)>0){
-    nr<-ncol(userFCs)-2
-
-    for (i in 1:nr){
-      par(new=TRUE)
-
-      plot(density(userFCs[,2+i]),
-           frame.plot=FALSE,
-           xlim=c(-9,3),
-           lwd=1,
-           xaxt='n',
-           yaxt='n',
-           xlab='',
-           ylab='',
-           main='',
-           col='black')
-    }
-
-    legend('topleft','User data',lwd = 3, bty="n")
-  }
-
-  GlobalFC<-do.call(cbind,allAvgFc)
-  colnames(GlobalFC)<-unlist(lapply(str_split(ref_fn,'_foldChanges.Rdata'),
-                                    function(x){x[[1]][1]}))
-
-  if(length(userFCs)>0){
-    nr<-ncol(userFCs)-2
-    GlobalFC<-cbind(GlobalFC,rowMeans(userFCs[match(cguides,userFCs$sgRNA),3:(2+nr)]))
-    colnames(GlobalFC)[ncol(GlobalFC)]<-'User data'
-    COL<-c(COL,'black')
-    nf<-nf+1
-    NC<-ncol(GlobalFC)-1
-  }else{
-    NC<-ncol(GlobalFC)
-  }
-
-  tmp<-boxplot(GlobalFC,
-               col=makeTransparent(COL),
-               frame.plot=FALSE,
-               ylab='sgRNA Avg FC',
-               pch=16,
-               pars=list(outcol=makeTransparent(COL)),
-               las=2,
-               cex.axis=0.9,
-               xaxt='n')
-
-  axis(1, at=1:nf, labels=FALSE)
-  text(x=1:nf, 
-       y=par()$usr[3]-0.03*(par()$usr[4]-par()$usr[3]),
-       labels=colnames(GlobalFC), 
-       srt=45, 
-       adj=1, 
-       xpd=TRUE)
-
-  abline(h=median(tmp$stats[1,1:NC]),col='darkgray',lty=2)
-  abline(h=median(tmp$stats[5,1:NC]),col='darkgray',lty=2)
-
-  abline(h=median(tmp$stats[2,1:NC]),col='darkgray')
-  abline(h=median(tmp$stats[4,1:NC]),col='darkgray')
-
-  abline(h=median(tmp$stats[3,1:NC]),lwd=3,col='darkgray')
-
-  abline(h=median(apply(GlobalFC[,1:NC],2,'min')),col='darkgray')
-  abline(h=median(apply(GlobalFC[,1:NC],2,'max')),col='darkgray')
-  
-  return(GlobalFC)
-}
-
-```
-
-```{r fig.align='center', echo=FALSE}
-
-statFC <- plot.sgRNAFCDist(HT29FCsDir, expData$logFCs)
-```
+Average parameters and confidence intervals of the distribution of sgRNA log FCs observed when screening HT29 with reagent and experimental settings described in Behan et al. 2019. If provided, User data statistics is shown.
 
 ```{r echo=FALSE}
 
-print.sgRNAFCStats <- function(x, userFCs=NULL) {
+stats <- HT29R.FC_distributions(refDataDir = HT29FCsDir,
+                          resDir = resultsDir,
+                          userFCs = expData$logFCs)
+
+```
+
+
+```{r echo=FALSE}
+
+ht29R.sgRNAFCStats <- function(x, userFCs=NULL) {
   
   stats <- describe(x, quant=c(.1,.25,.75,.90))
   
@@ -270,8 +149,7 @@ print.sgRNAFCStats <- function(x, userFCs=NULL) {
       })
   
   cat("HT29 sgRNAs logFCs statistics:\n\n")
-  cat(paste(c('Avg. Range: ','; '), 
-            round(c(AvgStats[4],AvgStats[5]),digits=2),
+  cat(paste(c('Avg. Range: ','; '), round(c(AvgStats[4],AvgStats[5]),digits=2),
             '±',round(c(SE$min,SE$max),digits=3),sep=''),'\n')
   cat(paste('Avg. Median: ', 
             round(AvgStats[1],digits=3),'±',
@@ -303,424 +181,49 @@ print.sgRNAFCStats <- function(x, userFCs=NULL) {
 
 }
 
-print.sgRNAFCStats(statFC, expData$logFCs)
+ht29R.sgRNAFCStats(stats, expData$logFCs)
 ```
 
 Average parameters and confidence intervals of the distribution of sgRNA log fold-changes observed when screening HT29 with reagent and experimental settings described in Behan et al. 2019 and User defined screen parameters
 
 ## Screen reproducibility
 
-```{r echo=FALSE, warning=FALSE}
+```{r echo=FALSE, fig.height=3, fig.width= 5, fig.align='center', warning=FALSE}
 
-plot.evaluationReps <- function(refDataDir='./', userFCs=NULL, geneLevel=TRUE){
-  
-  if(!geneLevel){
-    data(HT29R.prSCORE_rCorr)
-    ScoreCorrs<-HT29R.prSCORE_rCorr
-    sigTH<-0.55
-  }else{
-    data(HT29R.GL_prSCORE_rCorr)
-    ScoreCorrs<-HT29R.GL_prSCORE_rCorr
-    sigTH<-0.68
-    data(KY_Library_v1.0)
-  }
-  
-  data(HT29R.reproducible_GeneGuides)
-  
-  toPlot<-list(Pr.Score_bg=density(ScoreCorrs$BGscores),
-               Pr.Score_repCor=density(ScoreCorrs$REPscores))
-  
-  XLIM<-c(0.3,0.95)
-  
-  ccr.multDensPlot(toPlot,
-                   XLIMS = XLIM,
-                   TITLE='',
-                   COLS=c('gray','darkgreen','black'),
-                   LEGentries = c('Project Score background',
-                                  'Project Score replicates',
-                                  'Reproducibility Threshold'),
-                   XLAB = 'R')
-  
-  abline(v=sigTH)
-  
-  # plot pair-wise user replicate R scores onto multDensPlot
-  
-  if (!is.null(userFCs)){
-    
-    fc<-userFCs
-    nr<-ncol(fc)-2
-    fc<-fc[,3:ncol(fc)]
-    colnames(fc) <- paste('UserData_R', 1:ncol(fc), sep='')
-    rownames(fc) <- userFCs$sgRNA
-    dataSET<-fc[HT29R.reproducible_GeneGuides,]
-    
-    if(geneLevel){
-      dataSET<-apply(dataSET,MARGIN = 2,function(x){
-        cdata<-x
-        names(cdata)<-rownames(dataSET)
-        ccr.geneMeanFCs(cdata,KY_Library_v1.0)
-      })
-    }
-    
-    cc<-c(as.dist(cor(dataSET)))
-    
-    points(cc,rep(0,length(cc)),cex=3,pch=21,
-           bg=rgb(200,0,255,maxColorValue = 255,alpha = 120))
-    
-    abline(h=0,col='gray')
-    
-    if(geneLevel){
-      abline(v=0.68,lwd=2)
-    }else{
-      abline(v=0.55,lwd=2)
-    }
-    
-    legend('topleft',
-           legend = 'User data',
-           inset = c(0,0.25), 
-           pt.cex = 3,
-           pch=21, 
-           pt.bg=rgb(200, 0, 255, maxColorValue = 255, alpha = 120), 
-           bty = 'n')
-    
-  }
-  
-  layout(matrix(1:6, nrow=2, ncol=3, byrow=TRUE))
-  
-  for (f in ref_fn) {
-    
-    load(paste(refDataDir,f,sep=""))
-    nr<-ncol(foldchanges)-2
-    fc<-foldchanges[,3:ncol(foldchanges)]
-    rownames(fc)<-foldchanges$sgRNA
-    dataSET<-fc[HT29R.reproducible_GeneGuides,]
-    
-    if(geneLevel){
-      dataSET<-apply(dataSET,MARGIN = 2,function(x){
-        cdata<-x
-        names(cdata)<-rownames(dataSET)
-        ccr.geneMeanFCs(cdata,KY_Library_v1.0)
-      })
-    }
-    
-    cc<-c(as.dist(cor(dataSET)))
-    nn<-str_split(f,'_foldChanges.Rdata')[[1]][1]
-    
-    plot(cc,
-         rep(0,length(cc)),
-         xlim=c(0.3,0.95),
-         cex=3,
-         pch=21,
-         bg=rgb(0,0,255,maxColorValue = 255,alpha = 120),
-         main=nn, 
-         frame.plot = FALSE,
-         yaxt='n', 
-         xlab='R',
-         ylab='',
-         ylim=c(-1,1),
-         col='white')
-    
-    abline(h=0,col='gray')
-  
-    }
-
-}
-
+HT29R.evaluate_reps(HT29FCsDir,resultsDir,expData$logFCs, geneLevel = TRUE)
 ```
-
-
-```{r echo=FALSE, fig.align='center', warning=FALSE}
-
-plot.evaluationReps(HT29FCsDir,expData$logFCs)
-```
-
-On the top: The figure below show the overlapping kernel distributions of the pair-wise Pearson's correlation scores between replicates computed on log fold-changes at both sgRNAs-level and gene-level across all cells (Background in grey) and for any pair of randomly selected cell lines (Expectation in green). User Pearson's correlation scores computed on log fold-changes between replicates are depicted in pink.
-
-On the bottom: The figure show the pair-wise Pearson's correlation scores between HT29 experiments replicates computed on log fold-changes at both sgRNAs-level and gene-level. 
+Kernel distributions of the pair-wise R scores between replicates computed on log fold-changes at both sgRNAs-level and gene-level across all cells (Background in grey) and for any pair of randomly selected cell lines (Expectation in green). The User can check if his/her pair-wise R scores (in pink) are reaching the significant threshold while comparing them with the pair-wise R scores of the HT29 experiments replicates (in blue) 
 
 ## Screen Similarity 
 
-```{r echo=FALSE, warning=FALSE}
-
-plot.expSimilarity <- function(refDataDir='./',userFCs=NULL) {
-
-  data(KY_Library_v1.0)
-  data(HT29R.prSCORE_bkgr_screen_similarity)
-  bgCorr <- HT29R.prSCORE_bkgr_screen_similarity
-
-  if (!is.null(userFCs)) {
-    gg <- userFCs$sgRNA
-    userFCs <- userFCs[,3:ncol(userFCs)]
-    rownames(userFCs)<- gg
-    userFCs <- apply(userFCs, MARGIN = 1, 'mean')
-    userFCs <- ccr.geneMeanFCs(userFCs, KY_Library_v1.0)
-    cgenes <- names(userFCs)
-    }else{
-      cgenes <- unique(KY_Library_v1.0$GENES)
-      }
-  
-  ref_fcs <- lapply(ref_fn,function(x) {
-    load(paste(refDataDir,'/',x,sep=''))
-    nr <- ncol(foldchanges)-2
-    fc <- foldchanges[, 3:ncol(foldchanges)]
-    rownames(fc) <- foldchanges$sgRNA
-    fc <- apply(fc, MARGIN = 1, FUN = 'mean')
-    fc <- ccr.geneMeanFCs(fc,libraryAnnotation = KY_Library_v1.0)
-    })
-  
-  cgenes <- intersect(cgenes,Reduce('intersect',lapply(ref_fcs,'names')))
-  ref_fcs <- do.call(cbind,lapply(ref_fcs,function(x){x[cgenes]}))
-  
-  ref_fn <- unlist(lapply(str_split(ref_fn,'_foldChanges.Rdata'),function(x){x[1]}))
-  colnames(ref_fcs) <- ref_fn
-  
-  obsCorr <- c(as.dist(cor(ref_fcs)))
-  
-  toPlot <- list(Score_bg=density(bgCorr),
-               RefScreen_sim=density(obsCorr))
-  
-  layout(matrix(1:2, nrow=2, byrow=TRUE))
-
-  ccr.multDensPlot(toPlot,
-                   XLIMS = c(0.7,1),
-                   TITLE= 'Screen similarity',
-                   COLS= c('gray','darkgreen'),
-                   LEGentries = c('Project Score background','Ref.pair-wise HT29 screens'),
-                   XLAB = 'R')
-  
-  userCorrs <- NULL
-
-  if(!is.null(userFCs)){
-
-    ref_fcs <- cbind(userFCs[cgenes], ref_fcs[cgenes,])
-    userCorrs <- cor(ref_fcs)
-    userCorrs <- userCorrs[1, 2:ncol(userCorrs)]
-    
-    points(userCorrs,
-           rep(0,length(userCorrs)),
-           cex=1.5,
-           pch=21,
-           bg=rgb(200, 0, 255, maxColorValue = 255, alpha = 120))
-    
-    legend('topleft',
-           legend = 'User data',
-           inset = c(0,0.10),
-           pt.cex = 1.5,
-           pch=21,
-           pt.bg=rgb(200, 0, 255, maxColorValue = 255, alpha = 120), bty = 'n')
-
-    
-    colnames(ref_fcs)[1] <- 'User data'
-    
-  }
-  
-  tres <- t.test(bgCorr,obsCorr)
-  mtitle <- paste('backgr Vs ref = ',
-                  format(tres$p.value,scientific = TRUE,digits = 2))
-
-  if (length(userFCs)) {
-    tres <- t.test(obsCorr,userCorrs)
-    mtitle <- paste(mtitle,', user Vs ref = ',
-    format(tres$p.value,scientific = TRUE, digits= 2,sep=''))
-  }
-
-  boxplot(bgCorr, 
-          obsCorr, 
-          userCorrs, 
-          horizontal = TRUE,
-          ylim=c(0.7,1),
-          col=c('gray', 'darkgreen', rgb(200,0,255,maxColorValue = 255,alpha = 120)),
-          main=mtitle
-          )
-  
-  return(ref_fcs)
-  
-}
+```{r echo=FALSE, fig.height=3, fig.width=3 ,fig.align='center',warning=FALSE}
+HT29R.exp_similarity(refDataDir = HT29FCsDir, 
+                    resDir = resultsDir,
+                    geneGuides = "All",
+                    geneLevel = FALSE,
+                    userFCs = expData$logFCs)
 ```
 
-```{r echo=FALSE, fig.height=10, fig.width=5 ,fig.align='center',warning=FALSE}
+Kernel distributions of Project Score background and HT29 screens and correlation scores for User data with P-values for two-tailed Student's t-test highlighted in bold. 
 
-ref_fcs <- plot.expSimilarity(HT29FCsDir, expData$logFCs)
-```
-
-On the top : the figure shows kernel distributions of Project Score background and HT29 screens and correlation scores for User data. 
-
-On the bottom: the figure shows boxplots of the same distributions. P-values for two-tailed Student's t-test are highlighted in bold. 
-
-```{r echo=FALSE, fig.align='center', fig.width=10, fig.height=10, warning=FALSE}
-
-panel.cor <- function(x, y, digits = 2, prefix = "", cex.cor, ...) {
-  
-  usr <- par("usr"); on.exit(par(usr))
-  par(usr = c(0, 1, 0, 1))
-  r <- abs(cor(x, y))
-  txt <- format(c(r, 0.123456789), digits = digits)[1]
-  txt <- paste0(prefix, txt)
-  if(missing(cex.cor)) cex.cor <- 0.8/strwidth(txt)
-  text(0.5, 0.5, txt, cex = cex.cor * r)
-  
-}
-
-my.panelSmooth<-function (x, y, col = 'blue', bg = NA, pch = 16,
-                          cex = 1, col.smooth = "red", span = 2/3, iter = 3, ...){
-  par(new = TRUE)
-  smoothScatter(x, 
-                y, 
-                pch = pch, 
-                col = col, 
-                colramp = colorRampPalette(c('white',col)), 
-                cex = cex,
-                xaxt='n',
-                yaxt='n'
-                )
-  
-  ok <- is.finite(x) & is.finite(y)
-  
-  if (any(ok)) 
-    lines(stats::lowess(x[ok], y[ok], f = span, iter = iter),
-          col = col.smooth, 
-          lwd=3,...)
-}
-
-makeTransparent <- function(someColor, alpha=100){
-  newColor<-col2rgb(someColor)
-  apply(newColor, 2, 
-        function(curcoldata){
-          rgb(red=curcoldata[1], 
-          green=curcoldata[2],
-          blue=curcoldata[3],
-          alpha=alpha,
-          maxColorValue=255)})
-}
-
-pairs(ref_fcs, 
-      lower.panel = panel.cor, 
-      upper.panel = my.panelSmooth,
-      gap = 2)
-```
-
-The upper figure show Pearson’s correlation matrix computed on log fold-changes on HT29 vs User screen experiments averaged across technical replicates at gene level.
+The Pearson’s correlation matrix computed on log fold-changes on HT29 vs User screen experiments averaged across technical replicates at gene level .
 
 ## Performance assessment: measuring phenotype intensity
 
-```{r echo=FALSE, warning=FALSE}
-
-plot.phenoIntensity <- function(refDataDir='./', userFCs=NULL, geneLevel=TRUE){
-  
-  RES<-do.call(rbind,lapply(ref_fn, function(x){
-    load(paste(refDataDir,x,sep=''))
-    currentFc<-rowMeans(foldchanges[,3:ncol(foldchanges)])
-    names(currentFc)<-foldchanges$sgRNA
-    HT29R.singleScreen_PhenoIntensity(
-      currentFc,
-      geneLevel = geneLevel,
-      expName = unlist(lapply(str_split(x,'_foldChanges.Rdata'),function(y){y[1]})))}))
-  
-  if(!is.null(userFCs)){
-    currentFc<-rowMeans(userFCs[,3:ncol(userFCs)])
-    names(currentFc)<-userFCs$sgRNA
-    usrRes<-HT29R.singleScreen_PhenoIntensity(
-      currentFc,
-      geneLevel = geneLevel,
-      expName = 'User Data')
-    }
-  
-  boxplot(list(RES$GD_ribProt,RES$GD_essential),
-          names = c('Ribosomal protein genes','Other essential genes'),
-          ylab='Glass Delta',
-          col=c('darkblue','blue'),
-          border = 'darkgrey',
-          height=2,
-          lwd=2,
-          las=2)
-  
-  if (!is.null(userFCs)){
-    points(c(1,2),
-           c(usrRes$GD_ribProt,usrRes$GD_essential),
-           cex=2,
-           col=rgb(200,0,255,maxColorValue = 255,alpha = 255),
-           pch=16)
-  }
-}
-```
-
-```{r echo=FALSE, fig.height=8, fig.width=10, warning=FALSE}
-
+```{r echo=FALSE, fig.height=5, fig.width=5, warning=FALSE}
 layout(matrix(c(1:6), nrow=2, ncol=3, byrow=TRUE))
-plot.phenoIntensity(HT29FCsDir, expData$logFCs)
+
+HT29R.PhenoIntensity(refDataDir = HT29FCsDir,
+                    resDir = resultsDir,
+                    userFCs = expData$logFCs, 
+                    geneLevel=FALSE)
+
 ```
 
-On the top: Kernel distributions of the depletion signal observed in both HT29 reference and User screens evaluating median log fold-changes are shown. The distances between distributions for reference non-essential (N), essential (E) and ribosomal (R) protein genes are depicted as straight lines with the respective color codes. Glass's Delta (GD) score of the ribosomal protein (R) and essential genes (E) are computed for both HT29 reference and User screen. 
-
-```{r echo=FALSE, warning=FALSE}
-
-plot.ROCanalysis <- function(refDataDir='./',
-                             positives,
-                             negatives,
-                             userFCs=NULL,
-                             geneLevel=TRUE){
-  
-
-  RES<-lapply(ref_fn,function(x){
-    load(paste(refDataDir,x,sep=''))
-    currentFc<-rowMeans(foldchanges[,3:ncol(foldchanges)])
-    names(currentFc)<-foldchanges$sgRNA
-    ename<-str_split(x,'_foldChanges.Rdata')[[1]][1]
-    HT29R.individualROC(
-      currentFc,
-      positives,
-      negatives,
-      geneLevel = FALSE,
-      expName=ename)
-  })
-
-  if(!is.null(userFCs)){
-     currentFc<-rowMeans(userFCs[,3:ncol(userFCs)])
-     names(currentFc)<-userFCs$sgRNA
-     if (geneLevel){
-       data(KY_Library_v1.0)
-       currentFc <- ccr.geneMeanFCs(currentFc,KY_Library_v1.0)
-     }
-  
-     par(mfrow=c(1,2))
-     
-     usrRes<-HT29R.individualROC(
-       currentFc,
-       positives,
-       negatives,
-       geneLevel = FALSE,
-       expName='User Data')
-     }
+Kernel distributions of the depletion signal observed in both HT29 reference and User screens evaluating median log fold-changes are shown. The distances between distributions for reference non-essential (N), essential (E) and ribosomal (R) protein genes are depicted as straight lines with the respective color codes. Glass's Delta (GD) score of the ribosomal protein (R) and essential genes (E) are computed for both HT29 reference and User data (in pink). 
 
 
-  plot(0,0,xlim=c(1,0),ylim=c(0,1),col=NA,xlab='TNR',ylab='Recall')
-  abline(1,-1,col='darkgray')
-  
-  lapply(1:length(RES),function(x){
-    lines(RES[[x]]$ROCres$curve[,1],
-          RES[[x]]$ROCres$curve[,2],
-          lwd=5,
-          col=rgb(0,0,255,alpha = 100,maxColorValue = 255))
-    abline(h=RES[[x]]$ROCres$Recall,
-           lty=2,
-           col=rgb(0,0,255,alpha = 100,maxColorValue = 255),
-           lwd=2)
-  })
-
-  if(!is.null(userFCs)){
-    lines(usrRes$ROCres$curve[,1],
-          usrRes$ROCres$curve[,2],
-          lwd=2,
-          col=rgb(255,0,255,alpha = 255,maxColorValue = 255))
-    abline(h=usrRes$ROCres$Recall,
-           lty=2,
-           col=rgb(255,0,255,alpha = 255,maxColorValue = 255),
-           lwd=2)
-  }
-}
-```
-
-```{r echo=FALSE, fig.height=5, fig.width=10, warning=FALSE}
+```{r echo=FALSE, fig.height=5, fig.width=15, warning=FALSE}
 
 data("BAGEL_essential")
 data("BAGEL_nonEssential")
@@ -729,11 +232,113 @@ BAGEL_essential_sgRNAs <- ccr.genes2sgRNAs(KY_Library_v1.0,BAGEL_essential)
 BAGEL_nonEssential_sgRNAs <- ccr.genes2sgRNAs(KY_Library_v1.0,BAGEL_nonEssential)
 
 layout(matrix(c(1:6), nrow=2, ncol=3, byrow=TRUE))
-plot.ROCanalysis(HT29FCsDir, 
+HT29R.ROCanalysis(HT29FCsDir, 
                  expData$logFCs, 
                  positives = BAGEL_essential_sgRNAs,
                  negatives = BAGEL_nonEssential_sgRNAs,
                  geneLevel = FALSE)
 ```
+ROC and Precision/Recall curves obtained when classifying the fitness genes found for each HT29 and User experiments at 5 % of FDR of Bagel essential and non-essential sgRNAs (geneLevel = FALSE) or genes (geneLevel = TRUE). If geneLevel is TRUE, User must provide the lists of Bagel essential and non-essential genes instead of sgRNAs.  
 
-On the top: ROC and Precision/Recall curves obtained when classifying the fitness genes found for each HT29 and User experiments at 5 % of FDR of Bagel essential and non-essential sgRNAs.
+```{r echo=FALSE, fig.height=4, fig.width=3, align='center', warning=FALSE}
+
+RES <- HT29R.FDR_consensus(refDataDir = HT29FCsDir,
+                    resDir = resultsDir,
+                    userFCs = expData$logFCs,
+                    distance = "Cohen's",
+                    FDRth = 0.05)
+```
+
+
+```{r echo=FALSE, warning=FALSE}
+
+ht29R.FDRenrichment <- function(consensus, 
+                                labels,
+                                saveToFig=FALSE,
+                                display=TRUE){
+  
+  TP <- length(intersect(consensus, labels)) 
+  FP <- length(intersect(consensus, setdiff(RES$Universe, labels))) 
+  FN <- length(intersect(setdiff(RES$Universe, consensus), labels)) 
+  TN <- length(intersect(setdiff(RES$Universe, consensus),
+                        setdiff(RES$Universe,  labels))) 
+  
+  dat <- data.frame(
+      "col_1" = c(TP, FP),
+      "col_2" = c(FN, TN),
+      row.names = c("Consensus", "Other"),
+      stringsAsFactors = FALSE
+    )
+  
+  colnames(dat) <- c("is", "is not")
+
+  pval <- fisher.test(dat)$p.value
+  
+  myCol <- brewer.pal(3, "Pastel1")
+  Colors <- c("#CC6677", myCol[2])
+  categories <- c("Positive consensus", "Bagel essential")
+  
+  if(labels == BAGEL_nonEssential){
+    Colors <- c("#117733", myCol[3])
+    categories <- c("Negative consensus", "Bagel non-essential")
+  }
+
+  fname <- NULL
+  
+  if(saveToFig){
+    fname <- paste(resultsDir,'_Venn.png',sep='')
+  }
+  
+  if(display){
+    
+    grid.newpage()
+    
+    v <- venn.diagram(
+      x = list(consensus, labels),
+      category.names = categories,
+      filename = fname,
+      main = paste("Fisher's exact test:", pval, sep=""),
+      #output=TRUE,
+      fill=Colors,
+      lwd = 2,
+      lty = 'blank',        
+      cex = 1.2,
+      fontface = "bold",
+      fontfamily = "sans",
+      cat.cex = 1.8,
+      cat.fontface = "bold",
+      cat.default.pos = "outer",
+      cat.fontfamily = "sans",
+      cat.pos = c(-21, 10),
+      )
+  
+    grid.draw(v)
+  
+    if(saveToFig){
+      dev.off()
+    }
+  }
+}
+```
+
+```{r echo=FALSE, fig.height=3, fig.width=3, warning=FALSE}
+data("BAGEL_essential")
+data("BAGEL_nonEssential")
+
+ht29R.FDRenrichment(consensus = RES$Pos, labels = BAGEL_essential)
+```
+
+```{r echo=FALSE, fig.height=3, fig.width=3, warning=FALSE}
+
+BPmapping <- annFUN.org("BP", mapping = "org.Hs.eg.db", ID = "symbol") 
+genesUniverse <- unique(unlist(BPmapping))
+
+GO <- enrichGO(gene = RES$Pos, 
+               keyType = "SYMBOL", 
+               universe = genesUniverse, 
+               ont="BP", 
+               OrgDb = "org.Hs.eg.db")
+
+dotplot(GO, showCategory=10)
+
+```
