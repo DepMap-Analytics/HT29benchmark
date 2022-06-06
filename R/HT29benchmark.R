@@ -25,7 +25,7 @@ HT29R.download_ref_dataset <- function(whatToDownload='FCs',
   }
 }
 
-HT29R.FC_distributions <- function(refDataDir='./',resDir='./',userFCs=NULL, saveToFig=FALSE, display=TRUE){
+HT29R.FCdistributions <- function(refDataDir='./',resDir='./',userFCs=NULL, saveToFig=FALSE, display=TRUE){
 
     fn<-dir(refDataDir)
     fn<-grep('_foldChanges.Rdata',fn,value=TRUE)
@@ -167,7 +167,7 @@ HT29R.FC_distributions <- function(refDataDir='./',resDir='./',userFCs=NULL, sav
     return(GlobalFC)
 }
 
-HT29R.evaluate_reps <- function(refDataDir='./',
+HT29R.evaluateReps <- function(refDataDir='./',
                                 resDir='./',
                                 userFCs=NULL, 
                                 geneLevel=TRUE,
@@ -226,7 +226,6 @@ HT29R.evaluate_reps <- function(refDataDir='./',
                                   
         abline(v=sigTH, col = "darkblue", lwd = 3, lty = 2)
 
-  
         if (!is.null(userFCs)){
             fc <- userFCs
             nr <- ncol(fc)-2
@@ -258,21 +257,19 @@ HT29R.evaluate_reps <- function(refDataDir='./',
                    pt.bg=rgb(200,0,255,maxColorValue = 255,alpha = 255),
                    pch=21,            
                    bty = 'n')
+
+            cat(blue(paste(length(which(cc>=sigTH)),' pair-wise replicate comparisons (out of ',length(cc),
+            ') yield correlation scores greater or equal than Project Score QC threshold\n',sep='')))
     
         }
 
-    
-        vv<-c(as.dist(cor(dataSET)))
 
-        cat(blue(paste(length(which(vv>=sigTH)),' pair-wise replicate comparisons (out of ',length(vv),
-        ') yield correlation scores greater or equal than Project Score QC threshold\n',sep='')))
-  
         lapply(fn,function(x){ 
             load(paste(refDataDir,'/',x,sep=''))
-            nr<-ncol(foldchanges)-2     
-            fc<-foldchanges[,3:ncol(foldchanges)]
-            rownames(fc)<-foldchanges$sgRNA
-            dataSET<-fc[HT29R.reproducible_GeneGuides,]
+            nr <- ncol(foldchanges)-2     
+            fc <- foldchanges[,3:ncol(foldchanges)]
+            rownames(fc) <- foldchanges$sgRNA
+            dataSET <- fc[HT29R.reproducible_GeneGuides,]
 
             if(geneLevel){
                 dataSET<-apply(dataSET,MARGIN = 2,function(x){
@@ -311,7 +308,7 @@ HT29R.evaluate_reps <- function(refDataDir='./',
         }
 }
 
-HT29R.exp_similarity <- function(refDataDir='./',
+HT29R.expSimilarity <- function(refDataDir='./',
                                  resDir='./',
                                  userFCs=NULL, 
                                  geneGuides=c("All","HI"), 
@@ -406,7 +403,7 @@ HT29R.exp_similarity <- function(refDataDir='./',
         }
     }   
 
-    toPlot<-list(Score_bg=density(bgCorr),
+    toPlot <- list(Score_bg=density(bgCorr),
                 RefScreen_sim=density(obsCorr))
 
     if(saveToFig){
@@ -440,6 +437,7 @@ HT29R.exp_similarity <- function(refDataDir='./',
     
             userCorrs <- cor(ref_fcs)
             userCorrs <- userCorrs[1, 2:ncol(userCorrs)]
+            
             points(userCorrs,
                     rep(0,length(userCorrs)),
                     cex=1.5,
@@ -460,11 +458,11 @@ HT29R.exp_similarity <- function(refDataDir='./',
 
         tres <- t.test(bgCorr, obsCorr)
 
-        mtitle<-paste('PRJ SCORE BACKGROUND vs REFERENCE = ',format(tres$p.value,scientific = TRUE,digits = 2))
+        mtitle <- paste('PRJ SCORE BACKGROUND vs REFERENCE = ', format(tres$p.value, scientific = TRUE, digits = 2))
 
         if (!is.null(userFCs)) {
-            tres<-t.test(obsCorr,userCorrs)
-            mtitle<-paste(mtitle,'\n USER-DATA vs REFERENCE = ',format(tres$p.value,scientific = TRUE, digits= 2,sep=''))
+            tres <- t.test(obsCorr,userCorrs)
+            mtitle <- paste(mtitle,'\n USER-DATA vs REFERENCE = ', format(tres$p.value, scientific = TRUE, digits= 2, sep=''))
         }
 
         boxplot(bgCorr, 
@@ -478,20 +476,21 @@ HT29R.exp_similarity <- function(refDataDir='./',
         if(saveToFig) {
             dev.off()
             if(geneLevel){
-                pdf(paste(resDir,geneGuides,'_SCATTERPLOT_R_MATRIX_GENElevel.pdf',sep=''),15,15)
+                pdf(paste(resDir, geneGuides,'_SCATTERPLOT_R_MATRIX_GENElevel.pdf',sep=''),15,15)
             } else {
-                pdf(paste(resDir,geneGuides,'_SCATTERPLOT_R_MATRIX_sgRNAlevel.pdf',sep=''),15,15)
+                pdf(paste(resDir, geneGuides,'_SCATTERPLOT_R_MATRIX_sgRNAlevel.pdf',sep=''),15,15)
             }
         }
 
         pairs(ref_fcs,
-        lower.panel = panel.cor, 
-        upper.panel = my.panelSmooth)
+              lower.panel = panel.cor, 
+              upper.panel = my.panelSmooth)
 
         if(saveToFig){
             dev.off()
         }
     }
+    return(ref_fcs)
 }
 
 
@@ -561,7 +560,6 @@ HT29R.PhenoIntensity<-function(refDataDir='./',resDir='./',userFCs=NULL, geneLev
 
 }
 
-
 HT29R.singleScreen_PhenoIntensity <- function(FCprofile, geneLevel=TRUE,expName=NULL){
   
   data(EssGenes.ribosomalProteins)
@@ -613,8 +611,7 @@ HT29R.singleScreen_PhenoIntensity <- function(FCprofile, geneLevel=TRUE,expName=
   
 }
 
-
-HT29R.ROCanalysis<-function(refDataDir='./',
+HT29R.ROCanalysis <- function(refDataDir='./',
                             resDir='./',
                             positives,
                             negatives,
@@ -623,8 +620,8 @@ HT29R.ROCanalysis<-function(refDataDir='./',
                             saveToFig=FALSE,
                             display=TRUE){
     
-    fn<-dir(refDataDir)
-    fn<-grep('_foldChanges.Rdata',fn,value=TRUE)
+    fn <- dir(refDataDir)
+    fn <- grep('_foldChanges.Rdata',fn,value=TRUE)
 
     if (length(fn)==0){
         stop('No normalised sgRNA depletion fold-changes in a suitable format found in the indicated directory')
@@ -646,8 +643,9 @@ HT29R.ROCanalysis<-function(refDataDir='./',
     }
 
     if(display) {
+        
         par(mfrow=c(length(fn)/3,6))
-
+        
         RES <- lapply(fn,function(x){
             load(paste(refDataDir,x,sep=''))
             currentFc <- rowMeans(foldchanges[,3:ncol(foldchanges)])
@@ -699,7 +697,11 @@ HT29R.ROCanalysis<-function(refDataDir='./',
     }
 }
 
-HT29R.individualROC<-function(FCprofile, positives, negatives,geneLevel=TRUE,expName=NULL){
+HT29R.individualROC <- function(FCprofile, 
+                                positives, 
+                                negatives,
+                                geneLevel=TRUE,
+                                expName=NULL){
 
   data(KY_Library_v1.0)
 
@@ -722,7 +724,7 @@ HT29R.individualROC<-function(FCprofile, positives, negatives,geneLevel=TRUE,exp
   return(list(ROCres=ROCres,PRRCres=PRRCres))
 }
 
-HT29R.FDR_consensus <- function(refDataDir="./", 
+HT29R.FDRconsensus <- function(refDataDir="./", 
                                 resDir="./", 
                                 userFCs=NULL, 
                                 distance=c("GlDelta","Cohen's"), 
@@ -774,11 +776,11 @@ HT29R.FDR_consensus <- function(refDataDir="./",
         names(observations) <- names(currentFc)
         res <- roc(observations, currentFc, direction = ">", quiet = TRUE) 
         COORS <- coords(res, "all", ret = c("threshold", "ppv", "sensitivity"), transpose=TRUE) 
-        FDRpercTh <- max(COORS['threshold', min(which(COORS['ppv',] >= 1 - FDRth ))])
+        FDRpercTh <- max(COORS['threshold', which(COORS['ppv',] >= (1 - FDRth))])
         threshold <- COORS["threshold", min(which(COORS["threshold",] <= FDRpercTh))]
         list(TH=threshold)  
         })
-
+    
     FDR5_Positives <- Reduce(intersect, lapply(1:length(RES),function(x){names(ref_fcs[ref_fcs[,x] <= RES[[x]]$TH, x])}))
     FDR5_Negatives <- Reduce(intersect, lapply(1:length(RES),function(x){names(ref_fcs[ref_fcs[,x] > RES[[x]]$TH, x])}))
 
@@ -848,9 +850,20 @@ HT29R.FDR_consensus <- function(refDataDir="./",
                 horizontal = TRUE,
                 cex.axis=0.9)
 
-        axis(2, at=(1:14)[-2*(1:7)], labels=FALSE)
-        text(y=(1:14)[-2*(1:7)], x=par()$usr[3]-0.5*(par()$usr[4]-par()$usr[3]),
-        labels=colnames(consensus)[1:7], srt=45, adj=1, xpd=TRUE)
+        if(!is.null(userFCs)){
+            NL <- 7
+        } else {
+            NL <- 6
+        }
+
+        axis(2, at=(1:(NL*2))[-2*(1:NL)], labels=FALSE)
+        text(y=(1:(NL*2))[-2*(1:NL)], 
+             x=-7.55,
+             labels=colnames(consensus)[1:(ncol(consensus)-1)], 
+             srt=45, 
+             adj=1, 
+             xpd=TRUE)
+        
         #legend(1 ,15, legend=c("FDR5% pos", "FDR5% neg"), col=c("#CC6677","#117733"), box.lty = 0, pch=22, cex=1.0)
 
         par(mar=c(4,2,2,2))
@@ -878,7 +891,7 @@ HT29R.FDR_consensus <- function(refDataDir="./",
             dev.off()
         }
     }
-    return(list(Pos=FDR5_Positives, Neg=FDR5_Negatives, Universe=cgenes))
+    return(list(POS=FDR5_Positives, NEG=FDR5_Negatives, Universe=cgenes, DF=ref_fcs))
 }
 
 
@@ -911,3 +924,5 @@ makeTransparent <- function(someColor, alpha=100)
   apply(newColor, 2, function(curcoldata){rgb(red=curcoldata[1], green=curcoldata[2],
                                               blue=curcoldata[3],alpha=alpha, maxColorValue=255)})
 }
+
+
