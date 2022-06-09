@@ -1,4 +1,4 @@
-#### LOAD and NORMALIZE USER DATA 
+# CREATE USER_DATA.TSV
 
 dir <- "/Users/raffaele.iannuzzi/Documents/Project-HT29/OneDrive_1_5-19-2022"
 fn <- dir(dir)
@@ -23,6 +23,8 @@ DF <- DF[,c("sgRNA", "gene", "ERS717283.plasmid", "X3980STDY6393091.sample", COL
 colnames(DF)[4:ncol(DF)] <- c("HT29_c920R1", "HT29_c920R2", "HT29_c920R3",
                                  "HT29_c920R4","HT29_c920R5", "HT29_c920R6")
 
+write.table(DF, file="User_data.tsv", row.names=TRUE, sep="\t")
+
 
 NormDF <- ccr.NormfoldChanges(Dframe = DF,  
                         min_reads = 30, 
@@ -33,7 +35,7 @@ NormDF <- ccr.NormfoldChanges(Dframe = DF,
 
 UserFCs <- NormDF$logFCs
 
-#### CREATE BACKGROUND SIMILARITY AND DATA
+# CREATE BACKGROUND SIMILARITY AND DATA
 
 ## project score background similarity 
 # sgRNA level (all) 
@@ -49,60 +51,49 @@ for (f in fn) {
   load(paste(filesDir,f,sep=""))
   }
 
-
 PathToDownload <- "/Users/raffaele.iannuzzi/Downloads/"
 
 fn <- "EssentialityMatrices/00_logFCs.tsv" # genes x cells
 fn <- 'Sanger_corrected_sgRNA_logFCs.tsv' # sgRNAs x cells
 
 
-PrjSc <- read.table(paste(pathToDownload, fn,sep=""), header=TRUE, row.names = 1)
+PrjSc <- read.table(paste(PathToDownload, fn,sep=""), header=TRUE, row.names = 1)
 PrjSc <- na.omit(PrjSc)
+dim(PrjSc)
 
-PrjSc <- PrjSc[cgenes,]
-PrjSc <- PrjSc[HT29R.reproducible_GeneGuides, ]
-
+# ALL , GENELEVEL TRUE
 df <- sapply(PrjSc, as.numeric)
 df <- df[,2:ncol(df)]
-HT29R.prSCORE_bkgr_screen_similarity_sgRNAs_HI <- c(as.dist(cor(df)))
+HT29R.prSCORE_bkgr_screen_similarity <- c(as.dist(cor(df)))
+save(HT29R.prSCORE_bkgr_screen_similarity, file="HT29R.prSCORE_bkgr_screen_similarity.RData")
 
-save(HT29R.prSCORE_bkgr_screen_similarity_sgRNAs_HI, file="HT29R.prSCORE_bkgr_screen_similarity_sgRNAs_HI.RData")
+#HI, GENELEVEL TRUE
 
-similarityHT29R <- HT29R.prSCORE_bkgr_screen_similarity
-similarity %>% head(10) 
-similarityHT29R %>% head(10)
-pdf(paste(resDir,'MostInf_sgRNA_vs_gene.pdf',sep=''))
 
-toPlot<-list(Similarity=density(HT29R.prSCORE_bkgr_screen_similarity_sgRNA_HI),
-                Similarity_previous=density(HT29R.prSCORE_bkgr_screen_similarity_HI))
+# ALL, GENELEVEL FALSE
+PrjSc <- PrjSc[HT29R.consensus_GeneGuides, ]
+df <- sapply(PrjSc, as.numeric)
+df <- df[,2:ncol(df)]
+HT29R.prSCORE_bkgr_screen_similarity_sgRNAs <- c(as.dist(cor(df)))
+save(HT29R.prSCORE_bkgr_screen_similarity_sgRNAs, file="HT29R.prSCORE_bkgr_screen_similarity_sgRNA.RData")
+toPlot<-list(Similarity=density(HT29R.prSCORE_bkgr_screen_similarity_sgRNAs),
+                Similarity_previous=density(HT29R.prSCORE_bkgr_screen_similarity))
 
 ccr.multDensPlot(toPlot,
                     XLIMS = c(0.2,1), 
                     TITLE='Screen similarity',
-                    COLS=c('gray','black'),
-                    LEGentries = c('sgRNA','genes'),
+                    COLS=c("grey","black"),
+                    LEGentries = c("sgRNA","genes"),
                     XLAB = 'R')
-dev.off()
 
-# create consensus of guide for the HT29 experiments
-fn <- dir(refDataDir)
-fn <- grep('_foldChanges.Rdata', fn, value=TRUE)
 
-if (length(fn)==0) {
-    stop('No normalised sgRNA depletion fold-changes in a suitable format found in the indicated directory')
-}
+# HI, GENELEVEL FALSE
+PrjSc <- PrjSc[HT29R.reproducible_GeneGuides, ]
+df <- sapply(PrjSc, as.numeric)
+df <- df[,2:ncol(df)]
+HT29R.prSCORE_bkgr_screen_similarity_sgRNAs_HI <- c(as.dist(cor(df)))
+save(HT29R.prSCORE_bkgr_screen_similarity_sgRNAs_HI, file="HT29R.prSCORE_bkgr_screen_similarity_sgRNA_HI.RData")
 
-RES <- lapply(fn,function(x) {
-    load(paste(refDataDir,'/',x,sep=''))
-    fc <- foldchanges
-    rownames(fc) <- foldchanges$sgRNA
-})
-    
-HT29R.consensus_GeneGuides <- Reduce('intersect', lapply(1:length(RES),function(x){RES[[x]]}))
-
-save(HT29R.consensus_GeneGuides, file="HT29R.consensus_GeneGuides.RData")
-
-#####################################################################################
 
 
 HT29R.consensus_similarity <- function(refDataDir="./", resDir="./", userFCs=NULL, FDRth=0.05) {
@@ -258,193 +249,56 @@ HT29R.consensus_similarity <- function(refDataDir="./", resDir="./", userFCs=NUL
 HT29R.consensus_similarity(HT29FCsDir, resultsDir, userFCs)
 
 
-HT29R.FDR_consensus <- function(refDataDir="./", resDir="./", userFCs=NULL, distance=c("GlDelta","Cohen's"), FDRth=0.05) {
 
-    distance <- match.arg(distance)
-
-    data(KY_Library_v1.0)
-    data(BAGEL_essential)
-    data(BAGEL_nonEssential)
-
-    TruePositives <- BAGEL_essential
-    TrueNegatives <- BAGEL_nonEssential
-
-    fn <- dir(refDataDir)
-    fn <- grep("_foldChanges.Rdata", fn, value=TRUE)
-
-    if (!is.null(userFCs)) {
-        gg <- userFCs$sgRNA
-        userFCs <- userFCs[, 3:ncol(userFCs)]
-        rownames(userFCs) <- gg
-        userFCs <- apply(userFCs, MARGIN = 1, 'mean')
-        userFCs <- ccr.geneMeanFCs(userFCs, KY_Library_v1.0)
-        } 
-
-    cgenes <- unique(KY_Library_v1.0$GENES)
-
-    ref_fcs <- lapply(fn, function(x) {
-        load(paste(refDataDir, x, sep=""))
-        nr <- ncol(foldchanges)-2
-        fc <- foldchanges[, 3:ncol(foldchanges)]
-        rownames(fc) <- foldchanges$sgRNA
-        fc <- apply(fc, MARGIN = 1, FUN = "mean")
-        fc <- ccr.geneMeanFCs(fc,libraryAnnotation = KY_Library_v1.0)})
-
-    cgenes <- intersect(cgenes, Reduce("intersect", lapply(ref_fcs, "names")))
-
-    ref_fcs <- do.call(cbind, lapply(ref_fcs, function(x){x[cgenes]}))
-    fn <- unlist(lapply(str_split(fn, "_foldChanges.Rdata"), function(x){x[1]}))
-    colnames(ref_fcs) <- fn
-
-    predictions <- ref_fcs[intersect(c(TruePositives, TrueNegatives),row.names(ref_fcs)),]
-    observations <- is.element(row.names(predictions), TruePositives)+0
-
-    RES <- lapply(1:ncol(ref_fcs), function(x) { 
-        currentFc <- predictions[, x]
-        names(observations) <- names(currentFc)
-        res <- roc(observations, currentFc, direction = ">", quiet = TRUE) 
-        COORS <- coords(res, "all", ret = c("threshold", "ppv", "sensitivity"), transpose=TRUE) 
-        FDRpercTh <- max(COORS['threshold', min(which(COORS['ppv',] >= 1 - FDRth ))])
-        threshold <- COORS["threshold", min(which(COORS["threshold",] <= FDRpercTh))]
-        list(TH=threshold)  
-        })
-
-    FDR5_Positives <- Reduce(intersect, lapply(1:length(RES),function(x){names(ref_fcs[ref_fcs[,x] <= RES[[x]]$TH, x])}))
-    FDR5_Negatives <- Reduce(intersect, lapply(1:length(RES),function(x){names(ref_fcs[ref_fcs[,x] > RES[[x]]$TH, x])}))
-
-    consensus <- ref_fcs[intersect(c(FDR5_Positives, FDR5_Negatives), row.names(ref_fcs)),]
-    colnames(consensus) <- colnames(ref_fcs)
-
-    if(!is.null(userFCs)) {
-        consensus <- cbind(as.numeric(userFCs[rownames(consensus)]), consensus)
-        colnames(consensus)[1] <- "User data" 
-        }
-
-    C_dist <- function(x,y) {
-        mu_x <- mean(x)
-        mu_y <- mean(y)
-        n1 <- length(x)
-        n2 <- length(y)
-        sigma_pooled <- sqrt(((n1-1)*sd(x)^2 + (n2-1)*sd(y)^2) / (n1 + n2 - 2))
-        Size <- abs(mu_x - mu_y) / sigma_pooled
-        return(Size)
-        }
-
-    dist <- list()
-
-    for (i in 1:ncol(consensus)) {
-        x1 <- as.numeric(consensus[FDR5_Positives,i])
-        x2 <- as.numeric(consensus[FDR5_Negatives,i])
-        if (distance == "Cohen's") {
-            dist[i] <- C_dist(x1,x2)
-        } else if (distance == "GlDelta") {
-            dist[i] <- abs(mean(x1)-mean(x2))/sd(x1)
-        } 
-    }
-
-    dist <- unlist(dist)
-    names(dist) <- colnames(consensus)
-
-    # graphics 
-    group <- rep(c("Positives","Negatives"), c(length(FDR5_Positives), length(FDR5_Negatives)))
-    consensus <- cbind.data.frame(consensus, group)
-    consensus$group <- factor(group)
-    resh_consensus <- melt(consensus)
-
-    pdf(paste(resultsDir,'/FDR_CONSENSUS_DIST.pdf',sep=''),10,10)
-
-    layout(mat = matrix(c(1, 2, 0, 0), nrow = 2, ncol = 1),
-        heights = c(2, 1),    
-        widths = c(10, 5))     
-
-    par(mar=c(5,7,2,2))
-
-    tmp <- boxplot(value~group*variable,
-            data = resh_consensus,
-            frame.plot = FALSE,
-            yaxt = 'n',
-            ylab = '',
-            xlab = "log fold-change",
-            ylim = c(-7,3),
-            las=1,
-            col=c("green","red"),
-            pch=14,
-            pars=list(outcol=c("green", "red")),
-            horizontal = TRUE,
-            cex.axis=0.9)
-
-    axis(2, at=(1:14)[-2*(1:7)], labels=FALSE)
-    text(y=(1:14)[-2*(1:7)], x=par()$usr[3]-0.5*(par()$usr[4]-par()$usr[3]),
-    labels=colnames(consensus)[1:7], srt=45, adj=1, xpd=TRUE)
-    legend(1 ,15, legend=c("FDR5% pos", "FDR5% neg"), col=c("red","green"), box.lty = 0, pch=22, cex=1.0)
-
-    par(mar=c(4,2,2,2))
-
-    boxplot(dist, 
-            type="o",
-            lwd=1,
-            xlab="Distance",
-            main="",
-            outline=FALSE,
-            range=0,
-            border="grey",
-            boxlwd=4,
-            whiskcol = "blue",
-            whisklty = 2,
-            horizontal=TRUE,
-            col="#00418b")
-
-    if(!is.null(userFCs)) {
-        points(dist[["User data"]],1,cex=1.5,pch=21,bg=rgb(200,0,255,maxColorValue = 255))  
-        legend("topleft", legend="User data", pt.cex = 1.5,pch=21,pt.bg=rgb(200,0,255,maxColorValue = 255),bty = 'n')
-    }
-    dev.off()
-    return(list(Pos=FDR5_Positives, Neg=FDR5_Negatives, Universe=cgenes))
-}
-
-res <- HT29R.FDR_consensus(HT29FCsDir,resultsDir, UserFCs, distance="Cohen's")
+res <- HT29R.FDRconsensus(HT29FCsDir,resultsDir, UserFCs, distance="Cohen's")
 
 
 install.packages("VennDiagram")
 library(VennDiagram)
 myCol <- brewer.pal(3, "Pastel1")
+Colors <- c("#CC6677", myCol[2])
+Colors <- c("#117733", myCol[3])
 
-venn.diagram(
-  x = list(res$Pos, BAGEL_essential),
+grid.newpage()
+
+v <- venn.diagram(
+  x = list(res$POS, BAGEL_essential),
   category.names = c("Positive Consensus" , "Bagel Essential"),
-  filename = paste(resDir,'_Venn.png',sep=''),
-  output=TRUE,
-  fill=myCol[1:2],
+  filename = paste(resultsDir,'_Venn.png',sep=''),
+  output=FALSE,
+  fill=Colors,
   lwd = 2,
   lty = 'blank',        
-  cex = 1.2,
+  cex = 1.8,
   fontface = "bold",
   fontfamily = "sans",
   cat.cex = 1.8,
   cat.fontface = "bold",
   cat.default.pos = "outer",
   cat.fontfamily = "sans",
-  cat.pos = c(-21, 10),
+  cat.pos = c(-21, 10)
   )
+grid::grid.draw(v)
 
 # Fisher test (DO IT ALSO ON negative consensus)
 # take the intersection between 
 
-A <- length(intersect(res$Pos, BAGEL_essential)) # TP
-B <- length(intersect(res$Pos, setdiff(res$Universe, BAGEL_essential))) # FP setdiff(UNIVERSE, BAGEL_essential) instead of BAGEL_nonEssential
-C <- length(intersect(setdiff(res$Universe, res$Pos), BAGEL_essential)) # FN
-D <- length(intersect(setdiff(res$Universe, res$Pos),setdiff(res$Universe, BAGEL_essential))) # TN setdiff(UNIVERSE, BAGEL_essential) instead of BAGEL_nonEssential
+TP <- length(intersect(res$Pos, BAGEL_essential)) # TP
+FP <- length(intersect(res$Pos, setdiff(res$Universe, BAGEL_essential))) # FP setdiff(UNIVERSE, BAGEL_essential) instead of BAGEL_nonEssential
+FN <- length(intersect(setdiff(res$Universe, res$Pos), BAGEL_essential)) # FN
+TN <- length(intersect(setdiff(res$Universe, res$Pos),setdiff(res$Universe, BAGEL_essential))) # TN setdiff(UNIVERSE, BAGEL_essential) instead of BAGEL_nonEssential
 
 
 dat <- data.frame(
-  "col_1" = c(A, B),
-  "col_2" = c(C, D),
-  row.names = c("POS", "NEG"),
-  stringsAsFactors = FALSE
-)
-colnames(dat) <- c("ESS", "NONESS")
-
+    "col_1" = c(TP, FP),
+    "col_2" = c(FN, TN),
+    row.names = c("Is", "Is not"),
+    stringsAsFactors = FALSE
+  )
+colnames(dat) <- c("consensus", "Other")
+dat
 fisher.test(dat)$p.value
+
 
 
 # gsea on FDR5_POSITIVE AND FDR5_NEGATIVE
@@ -454,7 +308,7 @@ library(ggplot2)
 library(org.Hs.eg.db)
 
 genes <- res$Pos
-
+genes <- res$Neg
 
 # USING cluster Profiler
 install.packages("clusterProfiler")
@@ -530,7 +384,6 @@ ggplot(fisher_BP_top, aes(x=FractionGenes, y=reorder(Term, -(classicFisher)), li
   theme_light()
 
 dev.off()
-
 
 
 userFCs <- UserFCs
@@ -685,8 +538,6 @@ cat(paste(c('IQR min: ','; IQR max: '),round(c(userStats[,11], userStats[,12]), 
 cat(paste(c('10th perc: ','; 90th perc: '),round(c(userStats[,10],userStats[,13]),digits=3),sep=""),'\n')
 cat(paste('Skewness: ', round(userStats[,7], digits=3), sep=""),'\n')
 cat(paste('Kurtosis: ', round(userStats[,8], digits=3), sep=""),'\n')
-
-
 
 
 #par(mar = c(1,1,1,3))

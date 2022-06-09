@@ -1,5 +1,5 @@
 
-HT29R.download_ref_dataset <- function(whatToDownload='FCs',
+HT29R.downloadRefData <- function(whatToDownload='FCs',
                                      destFolder='./',
                                      dataRepoURL = "https://cog.sanger.ac.uk/cmp/downloads/crispr_cas9_benchmark/",
                                      expNames=c("HT29_c903","HT29_c904","HT29_c905","HT29_c906","HT29_c907","HT29_c908")){
@@ -313,6 +313,7 @@ HT29R.expSimilarity <- function(refDataDir='./',
                                  userFCs=NULL, 
                                  geneGuides=c("All","HI"), 
                                  geneLevel=TRUE,
+                                 Rscores=TRUE,
                                  saveToFig=FALSE,
                                  display=TRUE) {
 
@@ -475,16 +476,18 @@ HT29R.expSimilarity <- function(refDataDir='./',
 
         if(saveToFig) {
             dev.off()
-            if(geneLevel){
-                pdf(paste(resDir, geneGuides,'_SCATTERPLOT_R_MATRIX_GENElevel.pdf',sep=''),15,15)
-            } else {
-                pdf(paste(resDir, geneGuides,'_SCATTERPLOT_R_MATRIX_sgRNAlevel.pdf',sep=''),15,15)
+            if(Rscores){
+                
+                if(geneLevel){
+                    pdf(paste(resDir, geneGuides,'_SCATTERPLOT_R_MATRIX_GENElevel.pdf',sep=''),15,15)
+                } else {
+                    pdf(paste(resDir, geneGuides,'_SCATTERPLOT_R_MATRIX_sgRNAlevel.pdf',sep=''),15,15)
+                } 
+                pairs(ref_fcs,
+                    lower.panel = panel.cor, 
+                    upper.panel = my.panelSmooth)
             }
         }
-
-        pairs(ref_fcs,
-              lower.panel = panel.cor, 
-              upper.panel = my.panelSmooth)
 
         if(saveToFig){
             dev.off()
@@ -868,10 +871,23 @@ HT29R.FDRconsensus <- function(refDataDir="./",
 
         par(mar=c(4,2,2,2))
 
+        ylim <- c(min(dist), max(dist))
+        
+        if(!is.null(userFCs)){
+            userDist <- dist[["User data"]]
+            dist <- dist[2:length(dist)]
+            if (as.numeric(userDist) < min(as.numeric(dist))) {
+                ylim <- c(as.numeric(userDist)-0.2, max(as.numeric(dist)))
+            } else {
+                ylim <- c(min(as.numeric(dist)),max(as.numeric(dist)))
+            }
+        }
+
         boxplot(dist, 
                 type="o",
                 lwd=1,
                 xlab="Distance",
+                ylim=ylim,
                 main="",
                 outline=FALSE,
                 range=0,
@@ -883,7 +899,7 @@ HT29R.FDRconsensus <- function(refDataDir="./",
                 col="white")
 
         if(!is.null(userFCs)) {
-            points(dist[["User data"]],1,cex=1.5,pch=21,bg=rgb(200,0,255,maxColorValue = 255))  
+            points(userDist,1,cex=1.5,pch=21,bg=rgb(200,0,255,maxColorValue = 255))  
             legend("topleft", legend="User data", pt.cex = 1.5,pch=21,pt.bg=rgb(200,0,255,maxColorValue = 255),bty = 'n')
         }
         
@@ -924,5 +940,6 @@ makeTransparent <- function(someColor, alpha=100)
   apply(newColor, 2, function(curcoldata){rgb(red=curcoldata[1], green=curcoldata[2],
                                               blue=curcoldata[3],alpha=alpha, maxColorValue=255)})
 }
+
 
 

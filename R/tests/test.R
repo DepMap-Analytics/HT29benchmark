@@ -43,52 +43,67 @@ pathToKYLib <- paste(system.file('data', package = 'CRISPRcleanR'),'/KY_Library_
 load(pathToKYLib)
 
 # test HT29.FC_dist_properties
-HT29R.FC_distributions(refDataDir = HT29FCsDir,
+test <- HT29R.FCdistributions(refDataDir = HT29FCsDir,
                           resDir = resultsDir,
-                          userFCs)
-
+                          userFCs = UserFCs,
+                          saveToFig = TRUE)
 
 # test HT29R.evaluate_reps function
-HT29R.evaluate_reps(refDataDir = HT29FCsDir,
+HT29R.evaluateReps(refDataDir = HT29FCsDir,
                     resDir = resultsDir,
-                    userFCs = userFCs,
-                    geneLevel = FALSE) 
+                    userFCs = UserFCs,
+                    geneLevel = FALSE, 
+                    saveToFig = TRUE) 
 
-# test HT29.exp_similarity function
-HT29R.exp_similarity(refDataDir = HT29FCsDir, 
+# test HT29R.exp_similarity function
+
+# all and FALSE
+HT29R.expSimilarity(refDataDir = HT29FCsDir, 
                     resDir = resultsDir,
-                    geneGuides= "All",
+                    geneGuides = "All",
                     geneLevel = FALSE,
-                    userFCs)
+                    userFCs = userFCs,
+                    saveToFig = TRUE)
 
-# test HT29.PhenoIntensity
+# all and TRUE
+RES <- HT29R.expSimilarity(refDataDir = HT29FCsDir, 
+                    resDir = resultsDir,
+                    geneGuides = "All",
+                    geneLevel = TRUE,
+                    Rscore=TRUE,
+                    userFCs = UserFCs,
+                    saveToFig = TRUE)
+
+# HI and FALSE
+HT29R.expSimilarity(refDataDir = HT29FCsDir, 
+                    resDir = resultsDir,
+                    geneGuides = "HI",
+                    geneLevel = FALSE,
+                    userFCs = UserFCs,
+                    saveToFig = TRUE)
+
+# HI and TRUE
+RES <- HT29R.expSimilarity(refDataDir = HT29FCsDir, 
+                    resDir = resultsDir,
+                    geneGuides = "HI",
+                    geneLevel = TRUE,
+                    userFCs = UserFCs,
+                    saveToFig = TRUE)
+
+
+# test HT29R.PhenoIntensity
+# geneLevel FALSE
 HT29R.PhenoIntensity(refDataDir = HT29FCsDir,
                     resDir = resultsDir,
-                    userFCs = EPLC_272H)
+                    userFCs = UserFCs, 
+                    geneLevel=FALSE)
+# geneLevel TRUE
+HT29R.PhenoIntensity(refDataDir = HT29FCsDir,
+                    resDir = resultsDir,
+                    userFCs = UserFCs, 
+                    geneLevel=TRUE)
 
-
-# test HT29.ROCanalysis
-BAGEL_essential_sgRNAs <-ccr.genes2sgRNAs(KY_Library_v1.0, BAGEL_essential)
-BAGEL_nonEssential_sgRNAs <-ccr.genes2sgRNAs(KY_Library_v1.0, BAGEL_nonEssential)
-
-
-
-HT29R.ROCanalysis(refDataDir = HT29FCsDir,
-                  resDir = resultsDir,
-                  positives = BAGEL_essential,
-                  negatives = BAGEL_nonEssential,
-                  userFCs = userFCs,
-                  geneLevel = TRUE)
-
-# test HT29.FC_dist_properties
-HT29R.FC_distributions(refDataDir = HT29FCsDir,
-                          resDir = resultsDir,
-                          userFCs)
-
-
-
-
-###############################################
+# test HT29R.ROCanalysis function
 #sgRNA
 positives <-ccr.genes2sgRNAs(KY_Library_v1.0, BAGEL_essential)
 negatives <-ccr.genes2sgRNAs(KY_Library_v1.0, BAGEL_nonEssential)
@@ -97,8 +112,9 @@ HT29R.ROCanalysis(refDataDir = HT29FCsDir,
                   resDir = resultsDir,
                   positives = positives,
                   negatives = negatives,
-                  userFCs = userFCs,
-                  geneLevel = FALSE)
+                  userFCs = UserFCs,
+                  geneLevel = FALSE,
+                  saveToFig = TRUE)
 
 
 # genes
@@ -109,9 +125,177 @@ HT29R.ROCanalysis(refDataDir = HT29FCsDir,
                   resDir = resultsDir,
                   positives = positives,
                   negatives = negatives,
-                  userFCs = userFCs,
-                  geneLevel = TRUE)
-##########################################
+                  userFCs = UserFCs,
+                  geneLevel = TRUE,
+                  saveToFig = TRUE)
+
+
+res <- HT29R.FDRconsensus(refDataDir = HT29FCsDir,
+                    resDir = resultsDir,
+                    userFCs = UserFCs,
+                    distance = "Cohen's",
+                    FDRth = 0.05, 
+                    saveToFig = FALSE)
+
+
+data(EssGenes.ribosomalProteins)
+data(EssGenes.DNA_REPLICATION_cons)
+data(EssGenes.HISTONES)
+data(EssGenes.KEGG_rna_polymerase)
+data(EssGenes.PROTEASOME_cons)
+data(EssGenes.SPLICEOSOME_cons)
+data(BAGEL_essential)
+data(BAGEL_nonEssential)
+
+
+EssGenes <- list(EssGenes.ribosomalProteins,
+               BAGEL_essential,
+               EssGenes.DNA_REPLICATION_cons,
+               EssGenes.HISTONES,
+               EssGenes.KEGG_rna_polymerase,
+               EssGenes.PROTEASOME_cons,
+               EssGenes.SPLICEOSOME_cons)
+
+names(EssGenes) <- c("Ribosomal Proteins genes",
+                      "BAGEL essential",
+                      "DNA replication genes",
+                      "Histones genes",
+                      "KEGG_RNA_polymerase",
+                      "Proteasome genes",
+                      "Spliceosome genes")
+
+POS <- RES[which(rownames(RES) %in% res$POS),]
+group <- rep("HT-29-specific genes", nrow(POS))
+POS <- cbind.data.frame(POS, group)
+
+RIBO <- RES[which(rownames(RES) %in% EssGenes.ribosomalProteins),]
+group <- rep("Ribosomal Proteins genes", nrow(RIBO))
+RIBO <- cbind.data.frame(RIBO, group)
+
+ESS <- RES[which(rownames(RES) %in% BAGEL_essential),]
+group <- rep("BAGEL essential", nrow(ESS))
+ESS <- cbind.data.frame(ESS, group)
+
+NNESS <- RES[which(rownames(RES) %in% BAGEL_nonEssential),]
+group <- rep("BAGEL non-essential", nrow(NNESS))
+NNESS <- cbind.data.frame(NNESS, group)
+
+DF <- rbind(POS,RIBO,ESS,NNESS)
+group <- DF$group
+DF$group <- factor(group)
+DF <- melt(DF)
+
+
+pdf(paste(resultsDir,'/Genesets_logFCs.pdf',sep=''),20,8)
+par(mar=c(5,5,0,1))
+tmp <- vioplot(value~group*variable,
+                data = DF,
+                frame.plot = FALSE,
+                xaxt = 'n',
+                xlab='',
+                ylab = "log fold-change",
+                ylim = c(-7,3),
+                cex.axis=1.2,
+                las=1,
+                col=c("#B3CDE3","#888888","#CC6677","darkblue"),
+                pch=14,
+                pars=list(outcol=c("#B3CDE3","#888888","#CC6677","darkblue")),
+                horizontal = FALSE,
+                at=seq(1,40)[-c(5,6,11,12,17,18,23,24,29,30,35,36)]
+                )
+
+axis(1, at=(1:47)[c(2,8,14,20,26,32,38)], labels=FALSE)
+text(x=(1:47)[c(2,8,14,20,26,32,38)], 
+             y=-7.7,
+             labels=unique(DF$variable), 
+             srt=45, 
+             adj=1, 
+             xpd=TRUE,cex=1.2)
+
+abline(h=median(DF[which(DF$group == "HT-29-specific genes"),]$value), col="#CC6677",lty=2,lwd=2)
+abline(h=median(DF[which(DF$group == "Ribosomal Proteins genes"),]$value), col="darkblue",lty=2,lwd=2)
+abline(h=median(DF[which(DF$group == "BAGEL essential"),]$value), col="#B3CDE3",lty=2,lwd=2)
+abline(h=median(DF[which(DF$group == "BAGEL non-essential"),]$value), col="#888888",lty=2,lwd=2)
+dev.off()
+
+
+FDRth <- 0.25
+
+TrueNegatives <- BAGEL_nonEssential
+TruePositives <- EssGenes.SPLICEOSOME_cons
+
+predictions <- RES[intersect(c(TruePositives, TrueNegatives),row.names(RES)),]
+observations <- is.element(row.names(predictions), TruePositives)+0
+
+res <- lapply(1:ncol(RES), function(x) {
+  currentFc <- predictions[, x]
+  names(observations) <- names(currentFc)
+  res <- roc(observations, currentFc, direction = ">", quiet = TRUE) 
+  COORS <- coords(res, "all", ret = c("threshold", "ppv", "sensitivity"), transpose=TRUE) 
+  FDRpercTh <- max(COORS['threshold', which(COORS['ppv',] >= (1 - FDRth))])
+  threshold <- COORS["threshold", min(which(COORS["threshold",] <= FDRpercTh))]
+  recall <- COORS["sensitivity", min(which(COORS["threshold",] <= threshold))]
+  list(RC=recall)
+  })
+
+res
+
+median(unlist(res))
+quantile(unlist(res))
+
+signGenes <- lapply(1:ncol(RES),function(x){names(RES[RES[,x] <= res[[x]]$TH, x])})
+NsignGenes <- lapply(1:length(signGenes), function(x){length(signGenes[[x]])})
+NsignGenes
+median(unlist(NsignGenes))
+quantile(unlist(NsignGenes))
+
+
+df1 <- data.frame(
+  FDR="1%",
+  TH=as.numeric(unlist(res))
+)
+df2 <- data.frame(
+  FDR="5%",
+  TH=as.numeric(unlist(res))
+)
+df3 <- data.frame(
+  FDR="10%",
+  TH=as.numeric(unlist(res))
+)
+df4 <- data.frame(
+  FDR="25%",
+  TH=as.numeric(unlist(res))
+)
+
+
+df <- rbind(df1,df2,df3,df4)
+group <- factor(df$FDR,levels =c("1%","5%","10%","25%"))
+df$FDR <- NULL
+df <- cbind.data.frame(group, df)
+df
+
+pdf(paste(resultsDir,'/recall_Spliceosome.pdf',sep=''),6,7)
+par(mar=c(4,8,2,8))
+boxplot(TH~FDR,
+        data = df,
+        ylab="% Recall",
+        col=c("#332288", "#AA4499","#44AA99", "#999933"),
+        pch=14,
+        pars=list(outcol=c("#332288", "#AA4499","#44AA99", "#999933")),
+        las=1)
+dev.off()
+
+m <- apply(RES[res$POS,], MARGIN = 1, FUN = mean, na.rm = TRUE)
+o <- m[order(m,decreasing = FALSE)]
+
+pdf(paste(resultsDir,'/top50_logFCs.pdf',sep=''),6,7)
+par(mar=c(4,4,1,4))
+boxplot.matrix(RES[names(o),][1:50,], col="white", border="black", whiskcol="black", use.cols = FALSE,ylab="log fold-change",xaxt="n",xlab="Rank",las=1,cex.axis=1.2)
+dev.off()
+
+
+
+
 
 pdf(paste(resultsDir,'/test_density_user_Replicates.pdf',sep=''),10,10)
 par(mfrow=c(1,1))
@@ -194,6 +378,10 @@ if(!is.null(userFCs)){
   } 
 
 # Dist panel
+
+N1 <- 6
+N2 <- 15
+N3 <- 30
 
 layout_matrix <- matrix(c(1:36), nrow=6, ncol=6, byrow=TRUE)
 layout_matrix[lower.tri(layout_matrix)] <- c(1:15)
