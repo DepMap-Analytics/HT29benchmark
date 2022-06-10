@@ -1,8 +1,8 @@
 
 HT29R.downloadRefData <- function(whatToDownload='FCs',
-                                     destFolder='./',
-                                     dataRepoURL = "https://cog.sanger.ac.uk/cmp/downloads/crispr_cas9_benchmark/",
-                                     expNames=c("HT29_c903","HT29_c904","HT29_c905","HT29_c906","HT29_c907","HT29_c908")){
+                                  destFolder='./',
+                                  dataRepoURL = "https://cog.sanger.ac.uk/cmp/downloads/crispr_cas9_benchmark/",
+                                  expNames=c("HT29_c903","HT29_c904","HT29_c905","HT29_c906","HT29_c907","HT29_c908")){
   nexp <- length(expNames)
 
   for (i in 1:nexp){
@@ -25,7 +25,11 @@ HT29R.downloadRefData <- function(whatToDownload='FCs',
   }
 }
 
-HT29R.FCdistributions <- function(refDataDir='./',resDir='./',userFCs=NULL, saveToFig=FALSE, display=TRUE){
+HT29R.FCdistributions <- function(refDataDir='./',
+                                  resDir='./',
+                                  userFCs=NULL, 
+                                  saveToFig=FALSE, 
+                                  display=TRUE){
 
     fn<-dir(refDataDir)
     fn<-grep('_foldChanges.Rdata',fn,value=TRUE)
@@ -168,11 +172,11 @@ HT29R.FCdistributions <- function(refDataDir='./',resDir='./',userFCs=NULL, save
 }
 
 HT29R.evaluateReps <- function(refDataDir='./',
-                                resDir='./',
-                                userFCs=NULL, 
-                                geneLevel=TRUE,
-                                saveToFig=FALSE, 
-                                display=TRUE) {
+                               resDir='./',
+                               userFCs=NULL, 
+                               geneLevel=TRUE,
+                               saveToFig=FALSE, 
+                               display=TRUE) {
 
     data(HT29R.reproducible_GeneGuides)
     
@@ -309,13 +313,13 @@ HT29R.evaluateReps <- function(refDataDir='./',
 }
 
 HT29R.expSimilarity <- function(refDataDir='./',
-                                 resDir='./',
-                                 userFCs=NULL, 
-                                 geneGuides=c("All","HI"), 
-                                 geneLevel=TRUE,
-                                 Rscores=TRUE,
-                                 saveToFig=FALSE,
-                                 display=TRUE) {
+                                resDir='./',
+                                userFCs=NULL, 
+                                geneGuides=c("All","HI"), 
+                                geneLevel=TRUE,
+                                Rscores=TRUE,
+                                saveToFig=FALSE,
+                                display=TRUE) {
 
     data(KY_Library_v1.0)
     data(HT29R.prSCORE_bkgr_screen_similarity)
@@ -476,8 +480,8 @@ HT29R.expSimilarity <- function(refDataDir='./',
 
         if(saveToFig) {
             dev.off()
+            
             if(Rscores){
-                
                 if(geneLevel){
                     pdf(paste(resDir, geneGuides,'_SCATTERPLOT_R_MATRIX_GENElevel.pdf',sep=''),15,15)
                 } else {
@@ -497,7 +501,12 @@ HT29R.expSimilarity <- function(refDataDir='./',
 }
 
 
-HT29R.PhenoIntensity<-function(refDataDir='./',resDir='./',userFCs=NULL, geneLevel=TRUE,saveToFig=FALSE,display=TRUE){
+HT29R.PhenoIntensity <- function(refDataDir='./',
+                                 resDir='./',
+                                 userFCs=NULL, 
+                                 geneLevel=TRUE,
+                                 saveToFig=FALSE,
+                                 display=TRUE){
 
     fn<-dir(refDataDir)
     fn<-grep('_foldChanges.Rdata',fn,value=TRUE)
@@ -563,7 +572,7 @@ HT29R.PhenoIntensity<-function(refDataDir='./',resDir='./',userFCs=NULL, geneLev
 
 }
 
-HT29R.singleScreen_PhenoIntensity <- function(FCprofile, geneLevel=TRUE,expName=NULL){
+HT29R.singleScreen_PhenoIntensity <- function(FCprofile, geneLevel=TRUE, expName=NULL){
   
   data(EssGenes.ribosomalProteins)
   data(BAGEL_essential)
@@ -615,13 +624,13 @@ HT29R.singleScreen_PhenoIntensity <- function(FCprofile, geneLevel=TRUE,expName=
 }
 
 HT29R.ROCanalysis <- function(refDataDir='./',
-                            resDir='./',
-                            positives,
-                            negatives,
-                            userFCs=NULL, 
-                            geneLevel=TRUE,
-                            saveToFig=FALSE,
-                            display=TRUE){
+                              resDir='./',
+                              positives,
+                              negatives,
+                              userFCs=NULL, 
+                              geneLevel=TRUE,
+                              saveToFig=FALSE,
+                              display=TRUE){
     
     fn <- dir(refDataDir)
     fn <- grep('_foldChanges.Rdata',fn,value=TRUE)
