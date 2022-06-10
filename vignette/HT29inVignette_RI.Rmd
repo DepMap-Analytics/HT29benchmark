@@ -1,0 +1,410 @@
+---
+title: "In silico CRISPR-Cas9 validation Report"
+author: "Raffaele Iannuzzi @I0RI0 lab"
+date: "9/06/2022"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+In order to generate this report, the system will look for the following Project Score embedded data:
+
+* HT29R.expNames
+* HT29R.GL_prSCORE_rCorr.RData                
+* HT29R.prSCORE_rCorr.RData
+* HT29R.prSCORE_bkgr_screen_similarity.RData
+* HT29R.prSCORE_bkgr_screen_similarity_HI.RData
+* HT29R.prSCORE_bkgr_screen_similarity_sgRNA.RData
+* HT29R.prSCORE_bkgr_screen_similarity_sgRNA_HI.RData
+* HT29R.reproducible_GeneGuides.Rdata
+* HT29R.consensus_GeneGuides.RData
+
+```{r include=FALSE}
+
+# load libraries
+library(knitr)
+library(crayon)
+library(dplyr)
+library(moments)
+library(psych)
+library(devtools)
+library(CRISPRcleanR)
+library(RColorBrewer)
+library(vioplot)
+library(data.table)
+library(reshape2)
+library(VennDiagram)
+library(clusterProfiler)
+library(enrichplot) 
+library(org.Hs.eg.db)
+library(topGO)
+```
+
+## Setup
+
+The User must provide the path to its local HT29benchmark cloned repository. The system will create a directory (i.e., the 'HT29R_resFolder') where the FCs (or rawCounts) will be downloaded and stored as well. A subdirectory will be created in the 'HT29R_resFolder' to store the saved plots (which is likely to happen if the 'saveToFig' parameter of the HT29R functions is set to 'TRUE')
+
+```{r }
+localPath <- path.expand('~/Documents/Project-HT29/HT29benchmark/') # modify this path
+source(paste(localPath, "/R/HT29benchmark.R",sep=""))
+
+filesDir <- 'data/RData/'
+userDir <- 'data/HT29_c920/'
+
+dir.create('~/HT29R_resFolder/')
+tmpDir <- path.expand('~/HT29R_resFolder/')
+
+dir.create(paste(tmpDir, "RES/",sep=""))
+resultsDir <- paste(tmpDir,"RES/", sep="")
+```
+
+## Downloading reference sgRNA depletion fold-changes from high-quality HT-29 screens into the temporary directory
+
+```{r echo=FALSE}
+HT29R.downloadRefData(destFolder = tmpDir,whatToDownload = "FCs" )
+```
+
+## Load Project Score data and KY V.1.0 library
+
+```{r echo=FALSE}
+
+fn <- dir(paste(localPath, filesDir, sep=""))
+path_to_KYLib <- paste(system.file('data', package = 'CRISPRcleanR'),
+                       '/KY_Library_v1.0.Rdata', 
+                       sep="")
+
+if (!is.null(fn) & length(fn) == 9) {
+  for (f in fn) {
+    cat(paste('loading',f,'\n'))
+    cat('...Done!\n')
+    load(paste(paste(localPath, filesDir, sep=""),f,sep=""))
+    }
+  } else {
+  stop ("Error: no Project score data found in the indicated directory. 
+        Please refer to manual.")
+  }
+
+if (!is.null(path_to_KYLib)) {
+  cat(paste("loading", load(path_to_KYLib),'\n'))
+  cat('...Done!\n')
+  } else { 
+  stop ("Error: no sgRNAs plasmid library found in the indicated directory. 
+        Please refer to manual.")
+  }
+```
+
+
+```{r}
+ref_fn <- dir(tmpDir)
+ref_fn <- grep('_foldChanges.Rdata',ref_fn,value=TRUE)
+```
+
+## Load and preprocess example User data
+
+This chunk will create a dataframe containing the raw sgRNA counts (which is used as alternative to a '.tsv' file, i.e. see CRISPRcleanR manual for more details on the 'ccr.NormfoldChanges' function.)
+
+```{r fig.align='center', fig.height=6, fig.width=12}
+
+# Create User data file for demonstration
+
+dir <- paste(localPath,userDir,sep="")
+fn <- dir(dir)
+
+userData <- lapply(fn,function(x){paste(dir,x,sep='/')})
+
+DF <- lapply(userData, function(x) {
+    if (x == paste(dir, fn[[1]], sep="/")) {
+        read.table(x, header = TRUE, stringsAsFactors = FALSE) }
+    else {
+        read.table(x, header = TRUE, stringsAsFactors = FALSE, colClasses = c(gene="NULL",ERS717283.plasmid="NULL"))}
+})
+
+cguides <- rownames(KY_Library_v1.0)
+cguides <- intersect(cguides, Reduce("intersect", lapply(1:length(DF), function(x){DF[[x]]$sgRNA})))
+
+DF <- do.call(cbind, lapply(1:length(DF), function(x){DF[[x]][which(cguides %in% DF[[x]]$sgRNA),]}))
+DF[,c(5,7,9,11,13)] <- NULL
+COLS <- colnames(DF)[5:ncol(DF)]
+DF <- DF[,c("sgRNA", "gene", "ERS717283.plasmid", "X3980STDY6393091.sample", COLS)]
+
+colnames(DF)[4:ncol(DF)] <- c("HT29_c920R1", "HT29_c920R2", "HT29_c920R3",
+                                 "HT29_c920R4","HT29_c920R5", "HT29_c920R6")
+
+#write.table(DF, file=paste(resultsDir,"User_data.tsv",sep=""), row.names=TRUE, sep="\t") ### uncomment if a .tsv file is desired
+
+expData <- ccr.NormfoldChanges(
+  filename=NULL,
+  Dframe=DF,
+  min_reads = 30, 
+  EXPname = "User-Screen", 
+  libraryAnnotation = KY_Library_v1.0,
+  saveToFig = FALSE,
+  outdir = resultsDir,
+  display = TRUE)
+
+```
+
+## sgRNAs depletion statistics 
+
+Average parameters and confidence intervals of the distribution of sgRNA log fold-changes observed when screening HT-29 with reagent and experimental settings described in Behan et al. 2019. If provided, User data statistics will be also shown.
+
+
+```{r echo=TRUE, fig.align='center', fig.height=5, fig.width=10}
+stats <- HT29R.FCdistributions(tmpDir,resDir = resultsDir, userFCs = expData$logFCs,saveToFig = TRUE)
+```
+
+
+```{r echo=FALSE}
+
+ht29R.sgRNAFCStats <- function(x, userFCs=NULL) {
+  
+  stats <- describe(x, quant=c(.1,.25,.75,.90))
+  
+  if(!is.null(userFCs)) {
+    userStats <- stats['User data', 5:ncol(stats)]
+    NC <- ncol(x)-1
+    } else {
+    NC <- ncol(x)
+    }
+  
+  AvgStats <- apply(stats[1:NC,5:ncol(stats)],2,'mean')
+  
+  SE <- lapply(stats[1:NC,5:ncol(stats)],function(x){sd(x)/sqrt(NC)})
+  
+  cat("HT29 sgRNAs logFCs statistics:\n\n")
+  cat(paste(c('Avg. Range: ','; '), round(c(AvgStats[4],AvgStats[5]),digits=2),
+            '±',round(c(SE$min,SE$max),digits=3),sep=''),'\n')
+  cat(paste('Avg. Median: ', 
+            round(AvgStats[1],digits=3),'±',
+            round(SE$median,digits=3),sep=''),'\n')
+  cat(paste(c('Avg. IQR range: ','; '), 
+            round(c(AvgStats[11],AvgStats[12]),digits=2),
+            '±',round(c(SE$Q0.25,SE$Q.075),digits=2),sep=''),'\n')
+  cat(paste(c('Avg. 10-90th perc range: ','; '), 
+            round(c(AvgStats[10],AvgStats[13]),digits=2),
+            '±',round(c(SE$Q0.1,SE$Q0.9),digits=2),sep=''),'\n')
+  cat(paste('Avg. Skewness: ', 
+            round(AvgStats[7],digits=2),
+            '±',round(SE$skew,digits=2),sep=''),'\n')
+  cat(paste('Avg. Kurtosis: ', 
+            round(AvgStats[8],digits=2),
+            '±',round(SE$kurtosis,digits=2),sep=''),'\n')
+  
+  if(!is.null(userFCs)) {
+    cat('\nUser screen sgRNA logFCs statistics:\n\n')
+    cat(paste(c('Range min: ','; Range max: '),
+              round(c(userStats[,4], userStats[,5]), digits=3),sep=""),'\n')
+    cat(paste('Median: ', round(userStats[,1], digits=3), sep=""),'\n')
+    cat(paste(c('IQR min: ','; IQR max: '),
+              round(c(userStats[,11], userStats[,12]), digits=3), sep=""),'\n')
+    cat(paste(c('10th perc: ','; 90th perc: '),round(c(userStats[,10],userStats[,13]),digits=3),sep=""),'\n')
+    cat(paste('Skewness: ', round(userStats[,7], digits=3), sep=""),'\n')
+    cat(paste('Kurtosis: ', round(userStats[,8], digits=3), sep=""),'\n')
+    }
+
+}
+
+ht29R.sgRNAFCStats(stats, expData$logFCs)
+```
+
+
+## Screen reproducibility
+
+Kernel distributions of the pair-wise R scores between replicates computed on log fold-changes at both sgRNAs-level and gene-level across all cells (Background in grey) and for any pair of randomly selected cell lines (Expectation in green). The User can check if its pair-wise R scores (in pink) are reaching the significant threshold while comparing them with the pair-wise R scores of the HT-29 experiments replicates (in blue) 
+
+```{r echo=TRUE, fig.align='center', fig.height=8, fig.width=9, warning=FALSE}
+HT29R.evaluateReps(tmpDir,resultsDir,expData$logFCs, geneLevel = TRUE)
+```
+
+## Screen Similarity {.tabset}
+
+### Project Score comparison
+
+Kernel distributions of Project Score background and HT29 screens and correlation scores for User data with P-values for two-tailed Student's t-test highlighted in bold. 
+
+```{r echo=TRUE, fig.align='center', fig.height=7, fig.width=7, warning=FALSE}
+RES <- HT29R.expSimilarity(refDataDir = tmpDir, 
+                    resDir = resultsDir,
+                    geneGuides = "All",
+                    geneLevel = TRUE,
+                    Rscore=TRUE,
+                    userFCs = expData$logFCs)
+```
+
+
+### Pearson's correlation matrix
+
+The Pearson’s correlation matrix computed on log fold-changes on HT29 vs User screen experiments averaged across technical replicates.
+
+```{r echo=TRUE, fig.align='center', fig.height=10, fig.width=10, warning=FALSE}
+
+pairs(RES,lower.panel = panel.cor, upper.panel = my.panelSmooth)
+
+```
+
+## {-}
+
+## Performance assessment: measuring phenotype intensity
+
+Kernel distributions of the depletion signal observed in both HT29 reference and User screens evaluating median log fold-changes are shown. The distances between distributions for reference non-essential (N), essential (E) and ribosomal (R) protein genes are depicted as straight lines with the respective color codes. Glass's Delta (GD) score of the ribosomal protein (R) and essential genes (E) are computed for both HT29 reference and User data (in pink). 
+
+
+```{r echo=TRUE, fig.align='center', fig.height=10, fig.width=15, warning=FALSE}
+layout(matrix(c(1:6), nrow=2, ncol=3, byrow=TRUE))
+HT29R.PhenoIntensity(refDataDir = tmpDir,
+                    resDir = resultsDir,
+                    userFCs = expData$logFCs, 
+                    geneLevel=TRUE)
+
+```
+
+## ROC analysis {.tabset}
+
+ROC and Precision/Recall curves obtained when classifying the fitness genes found for each HT-29 and User experiments at 5 % of FDR of Bagel essential and non-essential sgRNAs (geneLevel = FALSE) or genes (geneLevel = TRUE). If geneLevel is TRUE, User must provide the lists of Bagel essential and non-essential genes without converting it to sgRNAs. 
+
+### Reference data
+
+```{r echo=TRUE, fig.align='center', fig.height=5, fig.width=15, warning=FALSE}
+
+data("BAGEL_essential")
+data("BAGEL_nonEssential")
+
+BAGEL_essential_sgRNAs <- ccr.genes2sgRNAs(KY_Library_v1.0,BAGEL_essential)
+BAGEL_nonEssential_sgRNAs <- ccr.genes2sgRNAs(KY_Library_v1.0,BAGEL_nonEssential)
+
+HT29R.ROCanalysis(tmpDir, 
+                 positives = BAGEL_essential_sgRNAs,
+                 negatives = BAGEL_nonEssential_sgRNAs,
+                 userFCs = NULL,
+                 geneLevel = FALSE)
+```
+
+### User data 
+
+```{r echo=TRUE, fig.align='center', fig.height=5, fig.width=5 , warning=FALSE}
+UserFCs <- rowMeans(expData$logFCs[,3:ncol(expData$logFCs)])
+names(UserFCs) <-expData$logFCs$sgRNA
+ROCres <- HT29R.individualROC(UserFCs,
+                    positives = BAGEL_essential_sgRNAs,
+                    negatives = BAGEL_nonEssential_sgRNAs,
+                    geneLevel = FALSE,
+                    expName='User Data')
+```
+
+## {-}
+
+## HT-29-specifics genes at 5% FDR
+
+Boxplots of the depletion signal carried by the Positive (in red) and Negative genes’ consensus (in green) with the respective measure of distance between the two distributions. The User can choose the effect size to compute (Cohen's d or Glass Delta). The function return the list of HT-29-specific genes at 5% FDR (POS), the Negative consensus of genes at 5 % FDR (NEG) plus the gene Universe to compute the Fisher's exact test.
+
+```{r echo=TRUE, fig.align='center', fig.height=8, fig.width=6, warning=FALSE}
+
+res <- HT29R.FDRconsensus(refDataDir = tmpDir,
+                    resDir = resultsDir,
+                    userFCs = expData$logFCs,
+                    distance = "Cohen's",
+                    FDRth = 0.05)
+```
+
+
+```{r echo=FALSE, warning=FALSE}
+
+ht29R.FDRenrichment <- function(consensus, 
+                                labels,
+                                background,
+                                saveToFig=FALSE,
+                                display=TRUE){
+  
+  TP <- length(intersect(consensus, labels)) 
+  FP <- length(intersect(consensus, setdiff(background, labels))) 
+  FN <- length(intersect(setdiff(background, consensus), labels)) 
+  TN <- length(intersect(setdiff(background, consensus),
+                        setdiff(background,  labels))) 
+  
+  dat <- data.frame(
+      "col_1" = c(TP, FP),
+      "col_2" = c(FN, TN),
+      row.names = c("Consensus", "Other"),
+      stringsAsFactors = FALSE
+    )
+  
+  colnames(dat) <- c("is", "is not")
+
+  pval <- fisher.test(dat)$p.value
+  
+  myCol <- brewer.pal(3, "Pastel1")
+  Colors <- c("#CC6677", myCol[2])
+  categories <- c("Positive consensus", "Bagel essential")
+  
+  if(labels == BAGEL_nonEssential){
+    Colors <- c("#117733", myCol[3])
+    categories <- c("Negative consensus", "Bagel non-essential")
+  }
+
+  fname <- NULL
+  
+  if(saveToFig){
+    fname <- paste(resultsDir,'_Venn.png',sep='')
+  }
+  
+  if(display){
+    
+    grid.newpage()
+    futile.logger::flog.threshold(futile.logger::ERROR, name = "VennDiagramLogger")
+    
+    v <- venn.diagram(
+      x = list(consensus, labels),
+      category.names = categories,
+      filename = fname,
+      main = paste("Fisher's exact test:", pval, sep=""),
+      #output=TRUE,
+      fill=Colors,
+      lwd = 2,
+      lty = 'blank',        
+      cex = 1.2,
+      fontface = "bold",
+      fontfamily = "sans",
+      cat.cex = 1.8,
+      cat.fontface = "bold",
+      cat.default.pos = "outer",
+      cat.fontfamily = "sans",
+      cat.pos = c(-21, 10),
+      )
+  
+    grid.draw(v)
+  
+    if(saveToFig){
+      dev.off()
+    }
+  }
+}
+```
+
+## FDR enrichment {.tabset}
+
+### Venn diagram
+
+Two-sided Fisher’s exact test
+
+```{r echo=TRUE, warning=FALSE}
+data("BAGEL_essential")
+data("BAGEL_nonEssential")
+ht29R.FDRenrichment(consensus = res$POS, background=res$Universe, labels = BAGEL_essential)
+```
+
+### GO analysis
+
+Top 10 Gene Ontology categories (Biological Process, BP) enriched for the HT-29 Positive Consensus
+
+```{r echo=TRUE, fig.height=5, fig.width=8, warning=FALSE}
+BPmapping <- annFUN.org("BP", mapping = "org.Hs.eg.db", ID = "symbol") 
+genesUniverse <- unique(unlist(BPmapping))
+
+GO <- enrichGO(gene = res$POS, 
+               keyType = "SYMBOL", 
+               universe = genesUniverse, 
+               ont="BP", 
+               OrgDb = "org.Hs.eg.db")
+
+dotplot(GO, showCategory=10)
+```

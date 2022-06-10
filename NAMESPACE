@@ -1,8 +1,12 @@
 exportPattern("^[[:alpha:]]+")
 
 export('HT29R.download_ref_dataset')
-export('HT29R.evaluate_reps')
-export('HT29R.FC_dist_properties')
+export('HT29R.evaluateReps')
+export('HT29R.FCdistributions')
+export('HT29R.expSimilarity')
+export('HT29R.PhenoIntensity')
+export('HT29R.ROCanalysis')
+export('HT29R.FDRconsensus')
 
 import(CRISPRcleanR)
 import(stringr)
