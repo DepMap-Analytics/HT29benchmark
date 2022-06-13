@@ -1,17 +1,22 @@
 exportPattern("^[[:alpha:]]+")
 
 export(HT29R.downloadRefData)
-export(HT29R.evaluateReps)
 export(HT29R.FCdistributions)
+export(HT29R.evaluateReps)
 export(HT29R.expSimilarity)
 export(HT29R.PhenoIntensity)
 export(HT29R.ROCanalysis)
 export(HT29R.FDRconsensus)
 
-import(CRISPRcleanR)
-import(stringr)
-import(RColorBrewer)
 import(crayon)
+import(CRISPRcleanR)
+import(magrittr)
+import(pROC)
+import(RColorBrewer)
+import(stringr)
 import(violin)
 
-
+importFrom("grDevices", "dev.off", "pdf")
+importFrom("graphics", "abline", "axis", "boxplot", "legend", "par", "points")
+importFrom("stats", "cor", "density", "median", "t.test")
+importFrom("utils", "download.file")
