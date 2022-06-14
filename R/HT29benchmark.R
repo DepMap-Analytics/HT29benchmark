@@ -411,6 +411,19 @@ HT29R.expSimilarity <- function(refDataDir='./',
     toPlot <- list(Score_bg=density(bgCorr),
                 RefScreen_sim=density(obsCorr))
 
+    userCorrs <- NULL
+
+    if(!is.null(userFCs)) {
+        if (geneLevel) {
+            ref_fcs <- cbind(userFCs[cgenes], ref_fcs[cgenes,])
+        } else { 
+            ref_fcs <- cbind(userFCs[cguides],ref_fcs[cguides,])
+        }
+        colnames(ref_fcs)[1] <- 'User data'
+        userCorrs <- cor(ref_fcs)
+        userCorrs <- userCorrs[1, 2:ncol(userCorrs)]  
+    }
+
     if(saveToFig){
         display <- TRUE
         if(geneLevel){
@@ -421,7 +434,7 @@ HT29R.expSimilarity <- function(refDataDir='./',
     }
 
     if(display){
-        
+
         layout(mat = c(1,1,2))
         ccr.multDensPlot(toPlot,
                         XLIMS = c(0.3,1), 
@@ -430,25 +443,14 @@ HT29R.expSimilarity <- function(refDataDir='./',
                         LEGentries = c('Project Score background','Ref.pair-wise HT29 screens'),
                         XLAB = 'R')
 
-        userCorrs <- NULL
-
         if(!is.null(userFCs)) {
-
-            if (geneLevel) {
-                ref_fcs <- cbind(userFCs[cgenes], ref_fcs[cgenes,])
-            } else { 
-                ref_fcs <- cbind(userFCs[cguides],ref_fcs[cguides,])
-            }
-    
-            userCorrs <- cor(ref_fcs)
-            userCorrs <- userCorrs[1, 2:ncol(userCorrs)]
             
             points(userCorrs,
                     rep(0,length(userCorrs)),
                     cex=1.5,
                     pch=21,
                     bg=rgb(200,0,255,maxColorValue = 255,alpha = 120))
-        
+
             legend('topleft',
                     legend = 'User data',
                     inset = c(0,0.10),
@@ -457,8 +459,6 @@ HT29R.expSimilarity <- function(refDataDir='./',
                     pt.bg=rgb(200,0,255,maxColorValue = 255,alpha = 120),
                     bty = 'n')
 
-
-            colnames(ref_fcs)[1] <- 'User data'
         }
 
         tres <- t.test(bgCorr, obsCorr)
@@ -499,7 +499,7 @@ HT29R.expSimilarity <- function(refDataDir='./',
 
     if(saveToFig){
         dev.off()
-        }
+    }
 
     return(ref_fcs)
 }
