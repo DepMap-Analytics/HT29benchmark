@@ -430,7 +430,7 @@ HT29R.expSimilarity <- function(refDataDir='./',
                         LEGentries = c('Project Score background','Ref.pair-wise HT29 screens'),
                         XLAB = 'R')
 
-        userCorrs<-NULL
+        userCorrs <- NULL
 
         if(!is.null(userFCs)) {
 
@@ -458,7 +458,7 @@ HT29R.expSimilarity <- function(refDataDir='./',
                     bty = 'n')
 
 
-            colnames(ref_fcs)[1]<-'User data'
+            colnames(ref_fcs)[1] <- 'User data'
         }
 
         tres <- t.test(bgCorr, obsCorr)
@@ -478,25 +478,29 @@ HT29R.expSimilarity <- function(refDataDir='./',
                 col=c('gray','darkgreen',rgb(200,0,255,maxColorValue = 255,alpha = 120)),
                 main=mtitle)
 
-        if(saveToFig) {
-            dev.off()
+        
+        if(Rscores) {
             
-            if(Rscores){
+            if (saveToFig) {
+                dev.off()
                 if(geneLevel){
                     pdf(paste(resDir, geneGuides,'_SCATTERPLOT_R_MATRIX_GENElevel.pdf',sep=''),15,15)
                 } else {
                     pdf(paste(resDir, geneGuides,'_SCATTERPLOT_R_MATRIX_sgRNAlevel.pdf',sep=''),15,15)
-                } 
-                pairs(ref_fcs,
+                }
+            }
+            
+            pairs(ref_fcs,
                     lower.panel = panel.cor, 
                     upper.panel = my.panelSmooth)
             }
+    
+    }
+
+    if(saveToFig){
+        dev.off()
         }
 
-        if(saveToFig){
-            dev.off()
-        }
-    }
     return(ref_fcs)
 }
 
