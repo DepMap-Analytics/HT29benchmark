@@ -20,5 +20,8 @@ import(vioplot)
 
 importFrom("grDevices", "dev.off", "pdf")
 importFrom("graphics", "abline", "axis", "boxplot", "legend", "par", "points")
+importFrom("psych", "describe")
+importFrom("reshape2", "melt")
 importFrom("stats", "cor", "density", "median", "t.test")
 importFrom("utils", "download.file")
+
