@@ -27,7 +27,8 @@ HT29R.downloadRefData <- function(whatToDownload='FCs',
 
 HT29R.FCdistributions <- function(refDataDir='./',
                                   resDir='./',
-                                  userFCs=NULL, 
+                                  userFCs=NULL,
+                                  stats=TRUE,
                                   saveToFig=TRUE, 
                                   display=FALSE){
 
@@ -161,14 +162,16 @@ HT29R.FCdistributions <- function(refDataDir='./',
         abline(h=median(apply(GlobalFC,2,'min')),col='darkgray')
         abline(h=median(apply(GlobalFC,2,'max')),col='darkgray')
 
-        
     }
-    
+
     if(saveToFig) {
         dev.off()
     }
-    
-    return(GlobalFC)
+
+    if(stats){
+        HT29R.sgRNAFCStats(GlobalFC, userFCs)
+    }
+
 }
 
 HT29R.evaluateReps <- function(refDataDir='./',
