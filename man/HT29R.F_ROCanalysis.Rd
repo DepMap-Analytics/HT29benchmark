@@ -46,7 +46,7 @@ HT29R.ROCanalysis(refDataDir='./',
 }
 \details{
 This function computes AUROC and AUPRRC in order to assess the ability of each HT29 screen plus for the user defined screen (if provided through the \code{userFCs} parameter) to detect prior-known essential (positives) and non-essential (negatives) set of genes using ranked depletion fold-changes (FCs) values as predictors. 
-This function produces a pdf file (named \code{'/ALLSCREENS_ROCs.pdf'} in the specified directory with multiple plots showing ROC and PrRc curves for each HT29 screen. If provided through the \code{userFCs} parameter, the function produces a second pdf file (named \code{'/USER_ROCs.pdf'}) with ROC and PrRc curves of the user defined data. If \code{display} is set to TRUE, a plot showing the overlayed curves' profiles will be displayed on R console.
+This function produces a pdf file (named \code{'ALLSCREENS_ROCs.pdf'} in the specified directory with multiple plots showing ROC and PrRc curves for each HT29 screen. If provided through the \code{userFCs} parameter, the function produces a second pdf file (named \code{'USER_ROCs.pdf'}) with ROC and PrRc curves of the user defined data. If \code{display} is set to TRUE, a plot showing the overlayed curves' profiles will be displayed on R console.
 
 }
 \value{

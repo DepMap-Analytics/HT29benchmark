@@ -5,7 +5,7 @@
   Defining a positive consensus of essential gene across the HT29 screens using the FDR ranking method.
 }
 \description{
-The FDR method is applied for each HT29 screen, then a strict intersection of genes classified as "essential" at a defined FDR threshold (0.05 by default) is taken. The positive consensus of genes identified is used as a probe to measure the distance (Cohen's or Glass's Δ) between the depletion fold-changes (FCs) of the positive and the negative consensus of genes for each screen, which is also computed by the same function. As a reference, the function uses a set of prior-known essential and non essential genes (respectively the \code{BAGEL_essential} and \code{BAGEL_nonEssential}). 
+The FDR method is applied for each HT29 screen, then a strict intersection of genes classified as "essential" at a defined FDR threshold (0.05 by default) is taken. The positive consensus of genes identified is used as a probe to measure the distance (Cohen's or Glass's Delta) between the depletion fold-changes (FCs) of the positive and the negative consensus of genes for each screen, which is also computed by the same function. The function uses a set of prior-known essential and non essential genes (respectively the \code{BAGEL_essential} and \code{BAGEL_nonEssential}) as reference. 
 }
 \usage{
 HT29R.FDRconsensus(refDataDir="./", 
@@ -25,10 +25,10 @@ HT29R.FDRconsensus(refDataDir="./",
       Output directory: a string specifying the directory where the output of this function (a pdf file with multiple plots) should be saved.
 }
   \item{userFCs}{
-      Data from a user performed screen: A data frame with the same format of the R ojbects composing the reference dataset, i.e. first two columns containing sgRNAs' identifiers and HGNC symbols of targete gene (headers = sgRNA and gene, respectivley), followed by one column per screen replicate containing sgRNAs' fold-changes.
+      Data from a user performed screen: A data frame with the same format of the R ojbects composing the reference dataset, i.e. first two columns containing sgRNAs' identifiers and HGNC symbols of targeted gene (headers = sgRNA and gene, respectivley), followed by one column per screen replicate containing sgRNAs' fold-changes.
       }
   \item{distance}{
-  Type of distance the user want to measure between the two consensus: A character string indicating "Cohen's" for the Cohen's d or "GlDelta" for Glass's Δ.
+  Type of distance the user want to measure between the two consensus: A character string indicating "Cohen's" for the Cohen's d or "GlDelta" for Glass's Delta.
   }
   \item{FDRth}{
    	If different from NULL, will be a numerical value >=0 and <=1 specifying the false discovery rate threshold at which fixed recall will be computed. Default value = 0.05.
@@ -41,7 +41,7 @@ HT29R.FDRconsensus(refDataDir="./",
   }
 }
 \details{
-This function produces a pdf file (named \code{'/FDR_CONSENSUS_DIST.pdf'} in the specified directory with multiple plots showing the depletion fold-changes (FCs) of the positive and negative consensus of genes for each HT29 screen plus for the user defined screen if provided through the \code{userFCs} parameter. A second plot shows the distribution of the distances computed for each screen, then if data are provided by the user, it allows to measure how far the HT29-specific genes log fold-changes are from the reference.  
+This function produces a pdf file (named \code{'FDR_CONSENSUS_DIST.pdf'} in the specified directory with multiple plots showing the depletion fold-changes (FCs) of the positive and negative consensus of genes for each HT29 screen plus for the user defined screen if provided through the \code{userFCs} parameter. A second plot shows the distribution of the distances computed for each screen. If data are provided by the user, it allows to measure how far the HT29-specific genes log fold-changes are from the reference.  
 }
 \value{
 }
@@ -49,7 +49,7 @@ This function produces a pdf file (named \code{'/FDR_CONSENSUS_DIST.pdf'} in the
 [1] Behan FM, Iorio F, Picco G, Gonçalves E, Beaver CM, Migliardi G, et al. Prioritization of cancer therapeutic targets using CRISPR-Cas9 screens. Nature. 2019;568:511–6.
 }
 \author{
-Ichcha Manipur & Francesco Iorio (fi1@sanger.ac.uk)
+Raffaele Iannuzzi & Francesco Iorio (fi1@sanger.ac.uk)
 }
 \note{
 %%  ~~further notes~~

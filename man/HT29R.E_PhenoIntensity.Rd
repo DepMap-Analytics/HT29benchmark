@@ -2,7 +2,7 @@
 \alias{HT29R.PhenoIntensity}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-  High-level quality control (QC) analysis using Glass’s Δ scores. 
+  High-level quality control (QC) analysis using Glass’s Delta scores. 
 }
 \description{
 Assessing screens’ performance in recovering gene essentiality profiles using sets of known essential (True Positives, TP) and known non-essential (True Negatives, TN) genes.
@@ -37,9 +37,9 @@ HT29R.PhenoIntensity(refDataDir='./',
   }
 }
 \details{
-This function computes Glass’s Δ scores as a metric to quantify screen quality by leveraging the intensity of the phenotype exerted by the inactivation of prior-known essential (E), ribosomal (R) and non-essential (N) genes. These scores account for the difference between the average depletion FCs of the genes in E (respectively R) and that of genes known to be non-essential (i.e., genes that are rarely expressed across cell lines 3) (N) in relation to the standard deviation of the depletion FCs of the genes in E (respectively R), as it follows: 
-Glass’s Δ(X) score = | μ (FC( x ∈ X )) - μ (FC( n ∈ N )) | / σ (FC( x ∈ X )) where X ∈ {E, R} , μ, σ indicate mean and standard deviation, respectively. 
-This function produces a pdf file (named \code{'/ALLSCREENS_PHENOINTENSITY.pdf'} in the specified directory with multiple plots for each HT29 screen of the observed distributions of prior-known essential (E), ribosomal (R) and non-essential (N) genes coupled with the respective Glass's Δ values. If provided through the \code{userFCs} parameter, the function produces a second pdf file (named \code{'/REFERENCE_PHENOINTENSITY.pdf'}) showing the same distributions for the user defined data. Boxplots summarizing the Glass's Δ score distributions of the two set of essential genes (i.e., Ribosomal protein genes (R) and Other essential genes (E)) across the six HT29 screens plus for the user defined screen (if provided) are also produced.
+This function computes Glass’s Delta scores as a metric to quantify screen quality by leveraging the intensity of the phenotype exerted by the inactivation of prior-known essential (E), ribosomal (R) and non-essential (N) genes. These scores account for the difference between the average depletion FCs of the genes in E (respectively R) and that of genes known to be non-essential (i.e., genes that are rarely expressed across cell lines 3) (N) in relation to the standard deviation of the depletion FCs of the genes in E (respectively R), as it follows: 
+Glass’s Delta(X) score = |  mu(FC( x belongs to X )) - mu(FC( n belongs to N )) | / sigma(FC( x belongs to X )) where X belongs to {E, R} , mu, sigma indicate mean and standard deviation, respectively. 
+This function produces a pdf file (named \code{'ALLSCREENS_PHENOINTENSITY.pdf'} in the specified directory with multiple plots for each HT29 screen of the observed distributions of prior-known essential (E), ribosomal (R) and non-essential (N) genes coupled with the respective Glass's Delta values. If provided through the \code{userFCs} parameter, the function produces a second pdf file (named \code{'REFERENCE_PHENOINTENSITY.pdf'}) showing the same distributions for the user defined data. Boxplots summarizing the Glass's Delta score distributions of the two set of essential genes (i.e., Ribosomal protein genes (R) and Other essential genes (E)) across the six HT29 screens plus for the user defined screen (if provided) are also produced.
 }
 \value{
 }

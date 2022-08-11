@@ -42,7 +42,7 @@ This is performed as for the Project Score data [1]: considering only a set of 8
 \code{HT29R.GL_prSCORE_rCorr_Reprod} object).
 This is performed as genome-wide correlation scores computed between replicates of the same CRISPR-Cas9 pooled genome-wide viability screen are generally always very high and indistiguishable from expectation due to only a small percentage of genes exerting an effect on cellular fitness upon knock-out.
 
-This function produces a pdf file (named \code{'/QC_REPRODUCIBILITY_sgRNAlevel.pdf'} or \code{'/QC_REPRODUCIBILITY_GENElevel.pdf'} depending on the \code{geneLevel} parameter) in the specified directory with a plot of the expected/observed distributions of replicate pair-wise correlation scores and reproducibility threshold from the Project Score dataset. Below this plots the pair-wise correlation scores computed between replicates of the HT29 reference dataset are also plotted. If the user provides data from his own screen (trough the \code{userFCs} parameter) then pair-wise correlation scores computed between replicates of this screens are overlaied on the distribution plot. In this case,a specification of how many of them are equal or greater than the replication threshold are printed in the console.
+This function produces a pdf file showing the plot of the expected/observed distributions of replicate pair-wise correlation scores and reproducibility threshold from the Project Score dataset. Below this plots, the pair-wise correlation scores computed between replicates of the HT29 reference dataset are also plotted. If the user provides its own data (trough the \code{userFCs} parameter) then pair-wise correlation scores computed between replicates of this screens are overlaied on the kernel distributions. In this case, a specification of the number of replicates reaching threshold is printed in the console.
 }
 \value{
 }
@@ -50,7 +50,7 @@ This function produces a pdf file (named \code{'/QC_REPRODUCIBILITY_sgRNAlevel.p
 [1] Behan FM, Iorio F, Picco G, Gonçalves E, Beaver CM, Migliardi G, et al. Prioritization of cancer therapeutic targets using CRISPR-Cas9 screens. Nature. 2019;568:511–6.
 }
 \author{
-Ichcha Manipur & Francesco Iorio (fi1@sanger.ac.uk)
+Ichcha Manipur, Raffaele Iannuzzi, Francesco Iorio (fi1@sanger.ac.uk)
 }
 \note{
 %%  ~~further notes~~

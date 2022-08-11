@@ -17,7 +17,7 @@ HT29R.runCrisprQC_Analysis(data = c("FCs","rawCounts") ,
 \arguments{
   \item{data}{
       String parameter specifying what type of data to dowload.
-      Possible values are "rawCounts" for plain .tsv files containing raw sgRNA countsare or "FCs" (default) for R objects containing sgRNA normalised depletion fold-changes: data frames in which the first two columns contain sgRNAs' identifiers and HGNC symbols of targeted gene, followed by one column per screen replicate containing sgRNAs' fold-changes;
+      Possible values are "rawCounts" for plain .tsv files containing raw sgRNA countsare or "FCs" (default) for R objects containing sgRNA normalised depletion fold-changes: data frames in which the first two columns contain sgRNAs' identifiers and HGNC symbols of targeted gene, followed by one column per screen replicate containing sgRNAs' fold-changes.
 }
   \item{userFCs}{
     Data from a user performed screen: A data frame with the same format of the R ojbects composing the reference dataset, i.e. first two columns containing sgRNAs' identifiers and HGNC symbols of targete gene (headers = sgRNA and gene, respectivley), followed by one column per screen replicate containing sgRNAs' fold-changes.
@@ -30,7 +30,7 @@ HT29R.runCrisprQC_Analysis(data = c("FCs","rawCounts") ,
   }
   \item{outdir}{
        Output directory: a string specifying the directory where the output of this function (a pdf file with multiple plots) should be saved
-
+       }
 }
 \details{
 The function create a folder named \code{"PLOTS"} in which the figures will be stored. The code will ask the user to provide two parameters whose are necessary for the low-level QC analysis. The first define the subset of guides the user intends to use (i.e., "All" for the sgRNAs targeting all genes in the genome-wide library and "HI" for the sgRNAs targeting only the most-informative and highly-reproducible ones as described in [1]), the second define the level of inspection (i.e., TRUE if inspecting at the gene-level or FALSE if at the guide-level). 
@@ -42,7 +42,7 @@ The function create a folder named \code{"PLOTS"} in which the figures will be s
 [1] Behan FM, Iorio F, Picco G, Gonçalves E, Beaver CM, Migliardi G, et al. Prioritization of cancer therapeutic targets using CRISPR-Cas9 screens. Nature. 2019;568:511–6.
 }
 \author{
-Raffaele M. Iannuzzi (raffaele.iannuzzi@fht.org)
+Raffaele M. Iannuzzi & Francesco Iorio (fi1@sanger.ac.uk)
 }
 \note{
 %%  ~~further notes~~

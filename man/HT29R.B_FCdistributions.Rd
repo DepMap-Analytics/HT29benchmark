@@ -6,7 +6,7 @@
 }
 \description{
   Average parameters (and confidence intervals) of sgRNA logFCs distributions observed when screening HT-29 with reagent and experimental settings described in Behan et al., plus user-provided screen statistics.
-  
+} 
 \usage{
 HT29R.FCdistributions(refDataDir='./',
                       resDir='./',
@@ -20,21 +20,21 @@ HT29R.FCdistributions(refDataDir='./',
 \arguments{
   \item{refDataDir}{
       Reference HT29 dataset directory: a string specifying the location of the processed HT29 reference dataset.
-}
+  }
   \item{resDir}{
       Output directory: a string specifying the directory where the output of this function (a pdf file with multiple plots) should be saved.
-}
+  }
   \item{userFCs}{
-      Data from a user performed screen: A data frame with the same format of the R ojbects composing the reference dataset, i.e. first two columns containing sgRNAs' identifiers and HGNC symbols of targete gene (headers = sgRNA and gene, respectivley), followed by one column per screen replicate containing sgRNAs' fold-changes.
-}
+      Data from a user performed screen: A data frame with the same format of the R ojbects composing the reference dataset, i.e. first two columns containing sgRNAs' identifiers and HGNC symbols of targete gene (headers = sgRNA and gene, respectively), followed by one column per screen replicate containing sgRNAs' fold-changes.
+  }
   \item{stats}{
       Boolean parameter specifying whether to show average statistics. Default is TRUE.
   }
   \item{saveToFig}{
-      Boolean parameter specifying whether to save all figures in PDF format. Default is TRUE
+      Boolean parameter specifying whether to save all figures in PDF format. Default is TRUE.
   }
   \item{display}{
-      Boolean parameter specifying whether to display graphics on R console. Default is FALSE
+      Boolean parameter specifying whether to display graphics on R console. Default is FALSE.
   }
 }
 \details{
@@ -47,7 +47,7 @@ HT29R.FCdistributions(refDataDir='./',
 [1] Behan FM, Iorio F, Picco G, Gonçalves E, Beaver CM, Migliardi G, et al. Prioritization of cancer therapeutic targets using CRISPR-Cas9 screens. Nature. 2019;568:511–6.
 }
 \author{
-Ichcha Manipur & Francesco Iorio (fi1@sanger.ac.uk)
+Raffaele Iannuzzi, Ichcha Manipur, Francesco Iorio 
 }
 \note{
 %%  ~~further notes~~

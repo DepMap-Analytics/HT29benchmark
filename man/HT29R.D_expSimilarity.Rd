@@ -45,7 +45,7 @@ HT29R.expSimilarity(refDataDir='./',
   }
 }
 \details{
-This function computes correlation scores between each averaged screens' replicate across the HT29 reference dataset and between each averaged HT29 screens' replicate and user defined data (through the \code{userFCs} parameter) in order to measure depletion fold-changes (FCs) similarities across the HT29 screens and the user defined depletion fold-changes patterns. The analysis can be performed considering the set of 838 most informative sgRNAs only (named \code{HT29R.reproducible_GeneGuides} as seen for the \code{HT29R.evaluateReps} function, or considering the sgRNAs consensus (named \code{HT29R.consensus_GeneGuides}) across the reference and the user defined screen. If the \code{geneLevel} parameter is set to TRUE, HGNC genes' symbols will be used instead of sgRNAs identifiers. The background distributions will be chosen based on the combination of parameters selected (e.g., if \code {geneGuides} parameter is set to "All" and \code{geneLevel} is set to TRUE, \code{HT29R.prSCORE_bkgr_screen_similarity} will be selected instead of \code {HT29R.prSCORE_bkgr_screen_similarity_sgRNA}). This function produces two pdf files (named \code{'_QC_SIMILARITY_GENElevel.pdf'} or \code{'_QC_SIMILARITY_sgRNAlevel.pdf'} and \code{'_SCATTERPLOT_R_MATRIX_GENElevel.pdf'} or \code{'_SCATTERPLOT_R_MATRIX_sgRNAlevel.pdf'}) in the specified directory. The first pdf contains a plot of the kernel distribution of Pearson's correlation scores computed using the selected sgRNAs (through the \code{geneGuides} parameter) between pairs of HT29 screens and between reference screens versus the user defined data if provided through the \code{userFCs} parameter. The Project Score background distribution is represented in grey. The same distributions are represented as boxplots coupled with two-sided t-test results for each comparison considered (Background vs Reference and, if provided, User-data vs Reference). If \code{Rscores} parameter is set to TRUE, a pdf will show the scatterplot correlation matrix of the pair-wise Pearson’s correlation scores computed within HT-29 references and, if provided, between user versus HT-29 references.
+This function computes correlation scores between each averaged screens' replicate across the HT29 reference dataset and between each averaged HT29 screens' replicate and user defined data (through the \code{userFCs} parameter) in order to measure depletion fold-changes (FCs) similarities across the HT29 screens and the user defined depletion fold-changes patterns. The analysis can be performed considering the set of 838 most informative sgRNAs only (named \code{HT29R.reproducible_GeneGuides} as seen for the \code{HT29R.evaluateReps} function, or considering the sgRNAs consensus (named \code{HT29R.consensus_GeneGuides}) across the reference and for the user defined screen. If the \code{geneLevel} parameter is set to TRUE, HGNC genes' symbols will be used instead of sgRNAs identifiers. The background distributions will be chosen based on the combination of parameters selected (e.g., if \code{geneGuides} parameter is set to "All" and \code{geneLevel} is set to TRUE, \code{HT29R.prSCORE_bkgr_screen_similarity} will be selected instead of \code {HT29R.prSCORE_bkgr_screen_similarity_sgRNA}). This function produces two pdf files (named '_QC_SIMILARITY_GENElevel.pdf' or '_QC_SIMILARITY_sgRNAlevel.pdf' and '_SCATTERPLOT_R_MATRIX_GENElevel.pdf' or '_SCATTERPLOT_R_MATRIX_sgRNAlevel.pdf') in the specified directory. The first pdf contains a plot of the kernel distribution of Pearson's correlation scores computed using the selected sgRNAs (through the \code{geneGuides} parameter) between pairs of HT29 screens and between reference screens versus the user defined data (if provided through the \code{userFCs} parameter). The Project Score background distribution is represented in grey. The same distributions are represented as boxplots coupled with two-sided t-test results for each comparison considered (Background vs Reference and, if provided, User-data vs Reference). If \code{Rscores} parameter is set to TRUE, the function saves scatterplot correlation matrix of the pair-wise Pearson’s correlation scores computed within HT-29 references and, if provided, between user versus HT-29 references.
 }
 
 \value{
@@ -54,7 +54,7 @@ This function computes correlation scores between each averaged screens' replica
 [1] Behan FM, Iorio F, Picco G, Gonçalves E, Beaver CM, Migliardi G, et al. Prioritization of cancer therapeutic targets using CRISPR-Cas9 screens. Nature. 2019;568:511–6.
 }
 \author{
-Ichcha Manipur & Francesco Iorio (fi1@sanger.ac.uk)
+Raffaele Iannuzzi, Ichcha Manipur, Francesco Iorio (fi1@sanger.ac.uk)
 }
 \note{
 %%  ~~further notes~~
@@ -63,7 +63,7 @@ Ichcha Manipur & Francesco Iorio (fi1@sanger.ac.uk)
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{
-\code{H29R.downloadRefData},
+\code{HT29R.downloadRefData},
 \code{HT29R.reproducible_GeneGuides},
 \code{HT29R.consensus_GeneGuides},
 \code{HT29R.prSCORE_bkgr_screen_similarity},
@@ -72,6 +72,7 @@ Ichcha Manipur & Francesco Iorio (fi1@sanger.ac.uk)
 \code{HT29R.prSCORE_bkgr_screen_similarity_sgRNA_HI}
 }
 \examples{
+
   ## Creating a temporary folder to store the HT29 reference dataset
   ## and the pdf created by this function
   dir.create('tmpDir')
