@@ -7,7 +7,6 @@ output:
   pdf_document: default
 ---
 
-
 In order to generate this report, the system will use the following Project Score data embedded in the package:
 
 * HT29R.GL_prSCORE_rCorr.RData                
@@ -67,7 +66,8 @@ DF <- lapply(userData, function(x) {
 
 data("KY_Library_v1.0")
 cguides <- rownames(KY_Library_v1.0)
-cguides <- intersect(cguides, Reduce("intersect", lapply(1:length(DF), function(x){DF[[x]]$sgRNA})))
+cguides <- intersect(cguides, Reduce("intersect", lapply(1:length(DF),
+                                                         function(x){DF[[x]]$sgRNA})))
 
 DF <- do.call(cbind, lapply(1:length(DF), function(x){DF[[x]][which(cguides %in% DF[[x]]$sgRNA),]}))
 DF[,c(5,7,9,11,13)] <- NULL
@@ -77,7 +77,9 @@ DF <- DF[,c("sgRNA", "gene", "ERS717283.plasmid", "X3980STDY6393091.sample", COL
 colnames(DF)[4:ncol(DF)] <- c("HT29_c920R1", "HT29_c920R2", "HT29_c920R3",
                                  "HT29_c920R4","HT29_c920R5", "HT29_c920R6")
 
-#write.table(DF, file=paste(resultsDir,"User_data.tsv",sep=""), row.names=TRUE, sep="\t") ### uncomment if a .tsv file is desired
+# uncomment if a .tsv file is desired:
+# write.table(DF, file=paste(resultsDir,"User_data.tsv",sep=""), row.names=TRUE, sep="\t")  
+
 
 expData <- ccr.NormfoldChanges(
   filename=NULL,
@@ -94,7 +96,7 @@ expData <- ccr.NormfoldChanges(
 ## Downloading reference sgRNA depletion fold-changes from high-quality HT-29 screens into the temporary directory
 
 ```{r echo=FALSE}
-HT29R.downloadRefData(destFolder = tmpDir,whatToDownload = "FCs" )
+HT29R.downloadRefData(destFolder = "~/Documents/HT29Data/",whatToDownload = "rawCounts" )
 ```
 
 ```{r echo=FALSE}
@@ -109,16 +111,12 @@ Average parameters and confidence intervals of the distribution of sgRNA log fol
 
 
 ```{r echo=TRUE, fig.align='center', fig.height=5, fig.width=10}
-stats <- HT29R.FCdistributions(tmpDir,
-                               resDir = resultsDir, 
-                               userFCs = expData$logFCs, 
-                               display=TRUE, 
-                               saveToFig = FALSE)
-```
-
-
-```{r echo=FALSE}
-HT29R.sgRNAFCStats(stats, expData$logFCs)
+HT29R.FCdistributions(tmpDir,
+                      resDir = resultsDir, 
+                      userFCs = expData$logFCs,
+                      stats=TRUE,
+                      saveToFig = FALSE,
+                      display=TRUE)
 ```
 
 
@@ -197,12 +195,13 @@ data("BAGEL_nonEssential")
 # Essential_sgRNAs <- ccr.genes2sgRNAs(KY_Library_v1.0, BAGEL_essential)
 # nonEssential_sgRNAs <- ccr.genes2sgRNAs(KY_Library_v1.0, BAGEL_nonEssential)
 
+
 HT29R.ROCanalysis(tmpDir, 
                   positives = BAGEL_essential,
                   negatives = BAGEL_nonEssential,
                   userFCs = expData$logFCs,
                   geneLevel = TRUE,
-                  saveToFig = FALSE,
+                  saveToFig = TRUE,
                   display = TRUE)
 ```
 
@@ -339,7 +338,7 @@ dotplot(GO, showCategory=10)
 # Automatic one-step QC analysis
 
 ```{r eval=FALSE, include=FALSE}
-HT29R.runCrisprQC_Analysis(data= "rawCounts", 
+HT29R.runCrisprQC_Analysis(data= "FCs", 
                            userFCs = expData$logFCs, 
                            positives = BAGEL_essential, 
                            negatives = BAGEL_nonEssential,
