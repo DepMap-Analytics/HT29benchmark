@@ -1,14 +1,14 @@
-\name{HT29R.download_ref_dataset}
-\alias{HT29R.download_ref_dataset}
+\name{HT29R.downloadRefData}
+\alias{HT29R.downloadRefData}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-  Download reference HT-29 screens data
+  Download reference HT-29 screens data.
 }
 \description{
   This function allows downloading reference datasets from high-quality CRISPR-Cas9 pooled screens of the HT-29 cell line performed with the KY sgRNA library[1]. This data has been generated through the experimental pipeline described in [2] and it is also public aviable on the Project Score web-site (https://score.depmap.sanger.ac.uk/downloads), part of the Cancer Dependency Map portfolio of tools and resources at the Wellcome Sanger Institute (https://depmap.sanger.ac.uk/).
 }
 \usage{
-H29R.download_ref_dataset(
+H29R.downloadRefData(
       whatToDownload = "FCs",
       destFolder = "./",
       dataRepoURL = "https://cog.sanger.ac.uk/cmp/downloads/crispr_cas9_benchmark/",
@@ -19,7 +19,7 @@ H29R.download_ref_dataset(
 \arguments{
   \item{whatToDownload}{
       String parameter specifying what type of data to dowload.
-      Possible values are "rawCounts" for plain .tsv files containing raw sgRNA countsare or "FCs" (default) for R objects containing sgRNA normalised depletion fold-changes: data frames in which the first two columns contain sgRNAs' identifiers and HGNC symbols of targete gene, followed by one column per screen replicate containing sgRNAs' fold-changes;
+      Possible values are "rawCounts" for plain .tsv files containing raw sgRNA countsare or "FCs" (default) for R objects containing sgRNA normalised depletion fold-changes: data frames in which the first two columns contain sgRNAs' identifiers and HGNC symbols of targeted gene, followed by one column per screen replicate containing sgRNAs' fold-changes;
 }
   \item{destFolder}{
       String specifying where the dataset should be saved;
@@ -45,7 +45,7 @@ Ichcha Manipur & Francesco Iorio (fi1@sanger.ac.uk)
 
   #### downloading reference sgRNA depletion fold-changes from high-quality
   #### HT-29 screens into the temporary directory
-  HT29R.download_ref_dataset(destFolder = 'tempDir')
+  HT29R.downloadRefDataset(destFolder = 'tempDir')
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

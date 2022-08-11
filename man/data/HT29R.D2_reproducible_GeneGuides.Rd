@@ -9,7 +9,7 @@ Library specific informative/reproducible sgRNAs.
 }
 \usage{data(HT29R.reproducible_GeneGuides)}
 \format{
-  A vector of strings with entries corresponding to sgRNA identifiers.
+  A vector of strings with entries corresponding to sgRNAs' identifiers.
 }
 \details{
 Genome-wide correlation scores computed between replicates of the same CRISPR-Cas9 pooled genome-wide viability screen are generally always very high and indistiguishable from expectation due to only a small percentage of genes exerting an effect on cellular fitness upon knock-out. In [2] we have selected a set of 838 most informative sgRNAs, defined as those targeting the same genes and with an average pairwise Pearson’s correlation > 0.6 between corresponding patterns of depletion fold-changes (FCs) across hundreds of screened cell lines.
