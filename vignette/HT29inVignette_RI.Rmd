@@ -32,11 +32,11 @@ library(topGO)
 
 ## Setup
 
-The system will create a directory (i.e., the 'HT29R_resFolder') where the FCs (or rawCounts) will be downloaded and stored as well. A subdirectory will be created in the 'HT29R_resFolder' to store the saved plots (which is likely to happen if the 'saveToFig' parameter of the HT29R functions is set to 'TRUE')
+This pipeline creates a local directory (i.e., the 'HT29R_resFolder') where the reference HT-29 data-set will be downloaded. A sub-directory will be created in the 'HT29R_resFolder' to save results' plots. Feel free to amend the below paths as required.
 
 ```{r }
-dir.create('~/HT29R_resFolder/')
-tmpDir <- path.expand('~/HT29R_resFolder/')
+dir.create('~/Documents/HT29R_resFolder/')
+tmpDir <- path.expand('~/Documents/HT29R_resFolder/')
 
 dir.create(paste(tmpDir, "USER/",sep=""))
 resultsDir <- paste(tmpDir,"USER/", sep="")
@@ -44,7 +44,7 @@ resultsDir <- paste(tmpDir,"USER/", sep="")
 
 # Step-by-step QC analysis
 
-## Load and preprocess example User data
+## Load and preprocess User data
 
 This chunk will create a dataframe containing the raw sgRNA counts (which is used as alternative to a '.tsv' file, i.e. see CRISPRcleanR manual for more details on the 'ccr.NormfoldChanges' function.)
 
