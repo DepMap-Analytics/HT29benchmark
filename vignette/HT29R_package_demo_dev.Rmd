@@ -16,15 +16,15 @@ https://github.com/DepMap-Analytics/HT29benchmark/blob/master/HT29benchmark.pdf.
 ## R package: quick start
 
 Installing additional libraries:
-```{r, fig.show='hold', eval=FALSE, results='hide'}
-data.table, VennDiagram, clusterProfiler, org.Hs.eg.db, enrichplot, org.Hs.eg.db, topGO
+```{r }
+install.packages(c("VennDiagram", "clusterProfiler", "org.Hs.eg.db","enrichplot", "org.Hs.eg.db", "topGO", "data.table"))
 ```
 
 all publicly available on CRAN. <br><br>
 
 ### Load libraries
 
-```{r, fig.show='hold', eval=FALSE, results='hide'}
+```{r }
 library(CRISPRcleanR)
 library(HT29benchmark)
 library(data.table)
@@ -72,12 +72,6 @@ The chunk below downloads our example User screen in the 'HT29R_resFolder'. We h
 URL <- 'https://figshare.com/ndownloader/files/36658530?private_link=5b2a579791c47a417474'
 download.file(URL, destfile = paste0(tmpDir, '/Example_UserScreen.tsv'))
 userData <- paste0(tmpDir, '/Example_UserScreen.tsv')
-```
-
-Instead, if the User have its own screening data and want to validate them using the QC pipeline we provide, he/she must specify the path to this file in the chunk below. This must be a tab delimited file (.tsv) with one row per sgRNA and columns/headers representing sgRNA identifiers, HGNC symbols of the genes targeted, sgRNAs' counts for controls and samples (see the 'ccr.NormfoldChanges' function for more details). 
-
-```{r eval=FALSE, include=FALSE}
-userData <- 'path/to/data'
 ```
 
 ## Normalize sgRNA counts and store computed User log fold-changes in 'expData'
