@@ -13,11 +13,25 @@ HT29benchmark is an R package available at: https://github.com/DepMap-Analytics/
 This page contains instruction to quickly try the package. User manual and package documentation are available at
 https://github.com/DepMap-Analytics/HT29benchmark/blob/master/HT29benchmark.pdf.
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = T,
+                      results = "hide")
+```
+
 ## R package: quick start
 
-Installing additional libraries:
+Install additional libraries from Bioconductor:
++ topGO,
++ clusterProfiler,
++ org.Hs.eg.db,
++ enrichplot
 
-```{r echo=FALSE}
+from CRAN:
++ VennDiagram,
++ data.table,
++ Kern.Smooth
+
+```{r eval=FALSE, include=FALSE}
 
 if (!require("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
@@ -25,17 +39,14 @@ if (!require("BiocManager", quietly = TRUE))
 BiocManager::install(c("topGO", "clusterProfiler","org.Hs.eg.db","enrichplot"))
 ```
 
-all publicly available on Bioconductor. <br><br>
 
-```{r echo=FALSE}
+```{r eval=FALSE, include=FALSE}
 install.packages(c("VennDiagram", "data.table", "KernSmooth"))
 ```
 
-all publicly available on CRAN. <br><br>
-
 ### Load libraries
 
-```{r }
+```{r echo=TRUE, warning=FALSE, message=FALSE}
 # QC analysis
 library(CRISPRcleanR)
 library(HT29benchmark)
@@ -65,7 +76,7 @@ The package comes with built-in data objects containing the following Project Sc
 
 The system will create a directory (i.e., the 'HT29R_resFolder') where the FCs (or rawCounts) will be downloaded and stored as well. A subdirectory will be created in the 'HT29R_resFolder' to store the saved plots (which is likely to happen if the 'saveToFig' parameter of the HT29R functions is set to 'TRUE')
 
-```{r }
+```{r warning=FALSE}
 dir.create('~/HT29R_resFolder/')
 tmpDir <- path.expand('~/HT29R_resFolder/')
 dir.create(paste(tmpDir, "USER/",sep=""))
