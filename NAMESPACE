@@ -1,19 +1,8 @@
 exportPattern("^[[:alpha:]]+")
 
-export(HT29R.downloadRefData)
-export(HT29R.FCdistributions)
-export(HT29R.evaluateReps)
-export(HT29R.expSimilarity)
-export(HT29R.PhenoIntensity)
-export(HT29R.ROCanalysis)
-export(HT29R.FDRconsensus)
-export(HT29R.runCrisprQC_Analysis)
-
-
+# dependencies
 import(crayon)
-import(CRISPRcleanR)
 import(magrittr)
-import(pROC)
 import(RColorBrewer)
 import(stringr)
 import(vioplot)
@@ -24,4 +13,15 @@ importFrom("psych", "describe")
 importFrom("reshape2", "melt")
 importFrom("stats", "cor", "density", "median", "t.test")
 importFrom("utils", "download.file")
+
+# package functions
+export(HT29R.downloadRefData)
+export(HT29R.FCdistributions)
+export(HT29R.evaluateReps)
+export(HT29R.expSimilarity)
+export(HT29R.PhenoIntensity)
+export(HT29R.ROCanalysis)
+export(HT29R.FDRconsensus)
+export(HT29R.runCrisprQC_Analysis)
+
 
