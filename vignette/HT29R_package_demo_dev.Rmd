@@ -1,25 +1,30 @@
 ---
-title: "In silico CRISPR-Cas9 validation Report"
-author: "Raffaele M. Iannuzzi @I0RI0 lab"
-date: "16/08/2022"
+title: "Benchmark data and software for assessing genome-wide CRISPR-Cas9 screening pipelines"
+author: "Raffaele M. Iannuzzi, Ichcha Manipur, Clare Pacini, Fiona M. Behan, Mario R. Guarracino, Mathew J. Garnett,, Aurora Savino and Francesco Iorio"
+date: "`r Sys.Date()`"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 ---
+## Running Modalities
 
-In order to generate this report, the system will use the following Project Score data embedded in the package:
+HT29benchmark is an R package available at: https://github.com/DepMap-Analytics/HT29benchmark.
 
-* HT29R.GL_prSCORE_rCorr.RData                
-* HT29R.prSCORE_rCorr.RData
-* HT29R.prSCORE_bkgr_screen_similarity.RData
-* HT29R.prSCORE_bkgr_screen_similarity_HI.RData
-* HT29R.prSCORE_bkgr_screen_similarity_sgRNA.RData
-* HT29R.prSCORE_bkgr_screen_similarity_sgRNA_HI.RData
-* HT29R.reproducible_GeneGuides.Rdata
-* HT29R.consensus_GeneGuides.RData
+This page contains instruction to quickly try the package. User manual and package documentation are available at
+https://github.com/DepMap-Analytics/HT29benchmark/blob/master/HT29benchmark.pdf.
 
-```{r include=FALSE}
-# load libraries
+## R package: quick start
+
+Installing additional libraries:
+```{r, fig.show='hold', eval=FALSE, results='hide'}
+data.table, VennDiagram, clusterProfiler, org.Hs.eg.db, enrichplot, org.Hs.eg.db, topGO
+```
+
+all publicly available on CRAN. <br><br>
+
+### Load libraries
+
+```{r, fig.show='hold', eval=FALSE, results='hide'}
 library(CRISPRcleanR)
 library(HT29benchmark)
 library(data.table)
@@ -29,6 +34,17 @@ library(enrichplot)
 library(org.Hs.eg.db)
 library(topGO)
 ```
+
+The package comes with built-in data objects containing the following Project Score data and sets of sgRNA guides used to perform the QC analysis:
+
+* HT29R.GL_prSCORE_rCorr.RData                
+* HT29R.prSCORE_rCorr.RData
+* HT29R.prSCORE_bkgr_screen_similarity.RData
+* HT29R.prSCORE_bkgr_screen_similarity_HI.RData
+* HT29R.prSCORE_bkgr_screen_similarity_sgRNA.RData
+* HT29R.prSCORE_bkgr_screen_similarity_sgRNA_HI.RData
+* HT29R.reproducible_GeneGuides.Rdata
+* HT29R.consensus_GeneGuides.RData
 
 ## Setup
 
@@ -49,7 +65,7 @@ If the User have its own screening data and want to validate them using the QC p
 userData <- 'path/to/data'
 ```
 
-The chunk below downloads our example User screen in the 'HT29R_resFolder'. We have used 6 replicates of a lower quality recessive screen to validate our QC pipeline (see the HT29 manuscript for more details). 
+The chunk below downloads our example User screen in the 'HT29R_resFolder'. We have used 6 replicates of a lower quality recessive screen to validate our QC pipeline (see manuscript for more details). 
 
 ```{r }
 # comment these lines of codes if you have already provided your own data
