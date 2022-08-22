@@ -8,6 +8,7 @@ import(stringr)
 import(vioplot)
 import(psych)
 import(reshape2)
+import(CRISPRcleanR)
 
 importFrom("grDevices", "dev.off", "pdf")
 importFrom("graphics", "abline", "axis", "boxplot", "legend", "par", "points")
