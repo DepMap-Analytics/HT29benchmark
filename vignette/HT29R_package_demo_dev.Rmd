@@ -16,8 +16,19 @@ https://github.com/DepMap-Analytics/HT29benchmark/blob/master/HT29benchmark.pdf.
 ## R package: quick start
 
 Installing additional libraries:
-```{r }
-install.packages(c("VennDiagram", "clusterProfiler", "org.Hs.eg.db","enrichplot", "org.Hs.eg.db", "topGO", "data.table"))
+
+```{r echo=FALSE}
+
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+BiocManager::install(c("topGO", "clusterProfiler","org.Hs.eg.db","enrichplot"))
+```
+
+all publicly available on Bioconductor. <br><br>
+
+```{r echo=FALSE}
+install.packages(c("VennDiagram", "data.table", "KernSmooth"))
 ```
 
 all publicly available on CRAN. <br><br>
@@ -25,14 +36,18 @@ all publicly available on CRAN. <br><br>
 ### Load libraries
 
 ```{r }
+# QC analysis
 library(CRISPRcleanR)
 library(HT29benchmark)
+
+# additional for vignette production
 library(data.table)
 library(VennDiagram)
 library(clusterProfiler)
 library(enrichplot) 
 library(org.Hs.eg.db)
 library(topGO)
+library(RColorBrewer)
 ```
 
 The package comes with built-in data objects containing the following Project Score data and sets of sgRNA guides used to perform the QC analysis:
@@ -279,7 +294,7 @@ HT29R.FDRenrichment <- function(consensus,
       cat.fontface = "bold",
       cat.default.pos = "outer",
       cat.fontfamily = "sans",
-      cat.pos = c(-21, 10),
+      cat.pos = c(-21, 10)
       )
   
     grid.draw(v)
