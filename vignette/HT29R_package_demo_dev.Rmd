@@ -20,28 +20,35 @@ knitr::opts_chunk$set(echo = T,
 
 ## R package: quick start
 
-Install additional libraries from Bioconductor:
+Install additional libraries from Bioconductor and CRAN, if they are found not 
+alredy installed:
+
+Bioconductor:
 + topGO,
 + clusterProfiler,
 + org.Hs.eg.db,
 + enrichplot
 
-from CRAN:
+CRAN:
 + VennDiagram,
 + data.table,
 + Kern.Smooth
 
 ```{r eval=FALSE, include=FALSE}
-
 if (!require("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 
-BiocManager::install(c("topGO", "clusterProfiler","org.Hs.eg.db","enrichplot"))
+toInstall<- setdiff(c("topGO", "clusterProfiler","org.Hs.eg.db","enrichplot"),rownames(installed.packages()))
+
+BiocManager::install(toInstall)
 ```
 
 
 ```{r eval=FALSE, include=FALSE}
-install.packages(c("VennDiagram", "data.table", "KernSmooth"))
+
+toInstall<- setdiff(c("VennDiagram", "data.table", "KernSmooth"),rownames(installed.packages()))
+
+install.packages(toInstall)
 ```
 
 ### Load libraries
@@ -74,7 +81,7 @@ The package comes with built-in data objects containing the following Project Sc
 
 ## Setup
 
-The system will create a directory (i.e., the 'HT29R_resFolder') where the FCs (or rawCounts) will be downloaded and stored as well. A subdirectory will be created in the 'HT29R_resFolder' to store the saved plots (which is likely to happen if the 'saveToFig' parameter of the HT29R functions is set to 'TRUE')
+The system will create a directory (i.e., the 'HT29R_resFolder') in the local folder, in which the reference dataset (sgRNA depletion fold changes or sgRNA counts) will be downloaded. A subdirectory will be used for the plots (which are reproduced if the 'saveToFig' parameter of the HT29benchmark functions is set to 'TRUE').
 
 ```{r warning=FALSE}
 dir.create('~/HT29R_resFolder/')
@@ -89,6 +96,8 @@ If the User have its own screening data and want to validate them using the QC p
 
 ```{r echo=TRUE}
 userData <- 'path/to/data'
+#userData must contain the data not the path
+
 ```
 
 The chunk below downloads our example User screen in the 'HT29R_resFolder'. We have used 6 replicates of a lower quality recessive screen to validate our QC pipeline (see manuscript for more details). 
@@ -193,7 +202,8 @@ Kernel distributions of the depletion signal observed in both HT29 reference and
 
 
 ```{r echo=TRUE, fig.align='center', fig.height=10, fig.width=15, warning=FALSE}
-layout(matrix(c(1:6), nrow=2, ncol=3, byrow=TRUE))
+layout(matrix(1, nrow=1, ncol=1, byrow=TRUE))
+
 HT29R.PhenoIntensity(refDataDir = tmpDir,
                      resDir = resultsDir,
                      userFCs = expData$logFCs, 
