@@ -1,10 +1,9 @@
-Package: HT29benchmark
 Type: Package
 Title: HT29 CRISPR-Cas9 pooled screen data and metrics to benchmark experimental pipelines 
 Version: 0.1.0
 Author: Raffaele M. Iannuzzi, Ichcha Manipur & Francesco Iorio
 Maintainer: Francesco Iorio <Fi9323@gmail.com>
-Description: R package for benchmarking genome-wide CRISPR-Cas9 knock-out viability screening pipelines making use of a reference dataset from six high-quality screens of the HT29 cell line
+  Description: R package for benchmarking genome-wide CRISPR-Cas9 knock-out viability screening pipelines making use of a reference dataset from six high-quality screens of the HT29 cell line
 License: GPL-2
 Depends: R (>= 3.5.0)
 Imports: crayon, CRISPRcleanR, magrittr, psych, RColorBrewer, reshape2, stringr, vioplot
