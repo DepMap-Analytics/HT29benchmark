@@ -10,4 +10,4 @@ Imports: crayon, CRISPRcleanR, magrittr, psych, RColorBrewer, reshape2, stringr,
 Remotes: francescojm/CRISPRcleanR
 Suggests: clusterProfiler, data.table, devtools, enrichPlot, knitr, org.Hs.eg.db, topGO, VennDiagram
 Encoding: UTF-8
-LazyData: true 
+LazyData: true
