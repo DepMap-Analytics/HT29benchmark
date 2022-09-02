@@ -1,0 +1,112 @@
+---
+title: "HT-29 CRISPR-Cas9 screen assessment"
+author: "Raffaele M. Iannuzzi, Francesco Iorio"
+date: "`r Sys.Date()`"
+output: pdf_document
+pdf_document: 
+  citation_package: biblatex
+bibliography: references.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::write_bib(x = c("knitr", "rmarkdown") , file = "test.bib")
+```
+
+## Introduction
+
+This document guides the user through (and shows results from) the execution of functions included in the \textit{HT29benchmark} R package. The aim of these functions is to assess novel experimental pipelines for genome-wide CRISPR-Cas9 screens upon the execution of a single calibration screen of the HT-29 human colon cancer cell line (<https://www.cellosaurus.org/CVCL_0320>) employing a commercially available genome-wide library of single guide RNAs (the Sanger library) [@Tzelepis2016-vb] (AddGene: 67989) and setting described in @Behan2019-wu.\
+The user provided calibration-screen data is evaluated through different metrics. Outcomes are then contrasted with those obtained when applying the same metrics to a high-quality dataset containing results from screening the HT-29 in multiple batches with the Sanger library (the HT-29 reference dataset).\
+
+Portions of this document can be commented to generated a quality-control assessment report.\
+
+The HT29benchmark R package is available at: <https://github.com/DepMap-Analytics/HT29benchmark>; with user reference manual available at <https://github.com/DepMap-Analytics/HT29benchmark/blob/master/HT29benchmark.pdf>. A manuscript describing the HT-29 reference dataset and the \textit{HT29benchmark} package is currently under review. The HT-29 reference dataset can be downaloded through a dedicated function of the \textit{HT29benchmark} package, as well is available on FigShare (@Behan_M2022-ks).
+
+## Environment preparation and data retrival
+
+The following code chunks load all required libraries installing the missing ones from Bioconductor and CRAN:\
+
+```{r eval=FALSE, include=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+toInstall<- setdiff(c("topGO", "clusterProfiler","org.Hs.eg.db","enrichplot"),
+                    rownames(installed.packages()))
+
+BiocManager::install(toInstall)
+
+toInstall<- setdiff(c("VennDiagram", "data.table", "KernSmooth"),
+                    rownames(installed.packages()))
+
+install.packages(toInstall)
+```
+
+```{r eval=TRUE, include=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
+# Needed for the analysis
+library(CRISPRcleanR)
+library(HT29benchmark)
+
+# Needed for the report
+library(data.table)
+library(VennDiagram)
+library(clusterProfiler)
+library(enrichplot) 
+library(org.Hs.eg.db)
+library(topGO)
+library(RColorBrewer)
+```
+
+The following code creates a directory (HT29R_resFolder) in the local folder, in which the HT-29 reference dataset (sgRNA depletion fold changes or sgRNA counts) are downloaded. A subdirectory is also created (USER) and used to save plots and other figures (if the saveToFig parameter of the HT29benchmark functions is set to 'TRUE').\
+
+```{r warning=FALSE}
+dir.create('~/HT29R_resFolder/')
+tmpDir <- path.expand('~/HT29R_resFolder/')
+dir.create(paste(tmpDir, "USER/",sep=""))
+resultsDir <- paste(tmpDir,"USER/", sep="")
+```
+
+The following code downloads the HT-29 reference dataset (i.e. sgRNA depletion log fold-changes from high-quality HT-29 screens) and stores it in the HT29_resFolder directory.\
+
+```{r eval=FALSE, echo=TRUE, include=TRUE}
+HT29R.downloadRefData(destFolder = tmpDir, whatToDownload = 'FCs')
+```
+
+The code chunk below downloads a demo screen in the 'HT29R_resFolder'. This encompasses data from a 6-replicates mid-quality screen of the HT-29 cell line, employing the Sanger library [@Tzelepis2016-vb] and setting described in @Behan2019-wu (see manuscript for more details), and it is available on FigShare (@Behan_M2022-ks).\
+
+IMPORTANT: The following code should not be executed to perform the analysis of real user-data. See further code chunk.
+
+```{r }
+URL <- 'https://figshare.com/ndownloader/files/36658530?private_link=5b2a579791c47a417474'
+download.file(URL, destfile = paste0(tmpDir, '/Example_UserScreen.tsv'))
+userDataPATH <- paste0(tmpDir, '/Example_UserScreen.tsv')
+```
+IMPORTANT: The following code should be uncommented and executed for the analysis of real user-data. The path to the real user dataset should be provided. This should be string specifying the path to a tsv file containing the raw sgRNA counts of a
+calibration screen of the HT-29 cell line performed with the Sanger library [@Tzelepis2016-vb] and experimental setting described in @Behan2019-wu\
+The format of this file should be as it follows. The file should be tab delimited, it should contain one row per sgRNA and the following columns/headers:
+
+  + sgRNA: column with alphanumerical identifiers of the sgRNA under consideration;
+  + gene: column with HGNC symbols of the genes targeted by the sgRNA under consideration;
+
+followed by the columns containing the sgRNAs' counts for the controls and columns for library transfected samples (one column per replicate).
+
+```{r echo=TRUE}
+## userDataPATH <- 'PATH/TO/REAL-USER-DATA/userdata.tsv'
+```
+
+## User data normalisation and computation of depletion log fold-changes
+
+The following code normalises user-data sgRNA counts, computes log fold-changes and stores results.
+
+```{r fig.align='center', fig.height=6, fig.width=12}
+data('KY_Library_v1.0')
+expData <- ccr.NormfoldChanges(filename = userDataPATH,
+                               Dframe = NULL,
+                               min_reads = 30, 
+                               EXPname = "User-Screen", 
+                               libraryAnnotation = KY_Library_v1.0,
+                               saveToFig = FALSE,
+                               outdir = resultsDir,
+                               display = TRUE)
+```
+
+# References
