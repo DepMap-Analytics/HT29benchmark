@@ -126,7 +126,7 @@ UserData <- ccr.NormfoldChanges(filename = userDataPATH,
                                display = TRUE)
 ```
 
-# Inspection of sgRNA depletion log fold-change distributions
+## Inspection of sgRNA depletion log fold-change distributions
 
 The following code allows visualising (through dedicated plots) distributions of sgRNA log fold-changes from the HT-29 reference dataset (across screens) as well as user screen data.\
 
@@ -141,7 +141,7 @@ HT29R.FCdistributions(refDataDir = tmpDir,
                       display = TRUE)
 ```
 
-# Intra-screen reproducibility assessment
+## Intra-screen reproducibility
 
 The following code evaluates and compares inter-screen replicate similarities for the HT-29 reference screen, as well as for the user-provided screen.
 Particularly, it shows Pearson’s correlation scores computed between sgRNA depletion log fold-change 
@@ -169,5 +169,139 @@ HT29R.evaluateReps(refDataDir = tmpDir,
                    saveToFig = FALSE)
 ```
 
+## Inter-screen similarity
 
-# References
+Text
+
+```{r echo=TRUE, fig.align='center', fig.height=7, fig.width=7, warning=FALSE}
+RES <- HT29R.expSimilarity(refDataDir = tmpDir, 
+                           resDir = resultsDir,
+                           geneGuides = "All",
+                           geneLevel = FALSE,
+                           Rscore = TRUE,
+                           saveToFig = FALSE,
+                           display = TRUE,
+                           userFCs = UserData$logFCs)
+```
+
+
+Same as before but at the gene level.
+
+```{r echo=TRUE, fig.align='center', fig.height=7, fig.width=7, warning=FALSE}
+RES <- HT29R.expSimilarity(refDataDir = tmpDir, 
+                           resDir = resultsDir,
+                           geneGuides = "All",
+                           geneLevel = TRUE,
+                           Rscore = TRUE,
+                           saveToFig = FALSE,
+                           display = TRUE,
+                           userFCs = UserData$logFCs)
+```
+
+## Phenotype intensity
+
+Text
+
+```{r echo=TRUE, fig.align='center', fig.height=10, fig.width=15, warning=FALSE}
+layout(matrix(1, nrow=1, ncol=1, byrow=TRUE))
+
+HT29R.PhenoIntensity(refDataDir = tmpDir,
+                     resDir = resultsDir,
+                     userFCs = UserData$logFCs, 
+                     geneLevel = FALSE,
+                     saveToFig = FALSE,
+                     display = TRUE)
+
+```
+
+Same as before but at the gene level
+
+```{r echo=TRUE, fig.align='center', fig.height=10, fig.width=15, warning=FALSE}
+layout(matrix(1, nrow=1, ncol=1, byrow=TRUE))
+
+HT29R.PhenoIntensity(refDataDir = tmpDir,
+                     resDir = resultsDir,
+                     userFCs = UserData$logFCs, 
+                     geneLevel = TRUE,
+                     saveToFig = FALSE,
+                     display = TRUE)
+
+```
+
+## ROC analysis
+
+Text
+
+```{r echo=TRUE, fig.align='center', fig.height=5, fig.width=15, warning=FALSE}
+
+# uncomment if geneLevel = TRUE
+data("BAGEL_essential")
+data("BAGEL_nonEssential")
+
+Essential_sgRNAs <- ccr.genes2sgRNAs(KY_Library_v1.0, BAGEL_essential)
+nonEssential_sgRNAs <- ccr.genes2sgRNAs(KY_Library_v1.0, BAGEL_nonEssential)
+
+HT29R.ROCanalysis(refDataDir = tmpDir, 
+                  positives = Essential_sgRNAs,
+                  negatives = nonEssential_sgRNAs,
+                  userFCs = UserData$logFCs,
+                  geneLevel = FALSE,
+                  saveToFig = FALSE,
+                  display = TRUE)
+```
+
+
+Same as before, but at the gene level
+
+```{r echo=TRUE, fig.align='center', fig.height=5, fig.width=15, warning=FALSE}
+
+HT29R.ROCanalysis(refDataDir = tmpDir, 
+                  positives = BAGEL_essential,
+                  negatives = BAGEL_nonEssential,
+                  userFCs = UserData$logFCs,
+                  geneLevel = TRUE,
+                  saveToFig = FALSE,
+                  display = TRUE)
+```
+
+
+## HT-29-specifics fitness genes at 5% FDR and their characterisation
+
+Text
+
+```{r echo=TRUE, fig.align='center', fig.height=8, fig.width=6, warning=FALSE}
+
+res <- HT29R.FDRconsensus(refDataDir = tmpDir,
+                          resDir = resultsDir,
+                          userFCs = UserData$logFCs,
+                          distance = "Cohen's",
+                          FDRth = 0.05,
+                          saveToFig = FALSE,
+                          display = TRUE)
+```
+
+Overlap with prior known (BAGEL) essential genes.
+
+```{r echo=TRUE, warning=FALSE}
+HT29R.FDRenrichment(consensus = res$POS, background=res$Universe, labels = BAGEL_essential)
+```
+
+## GO analysis
+
+Top 10 Gene Ontology categories (Biological Process, BP) enriched for
+the HT-29 Positive Consensus
+
+```{r echo=TRUE, fig.height=5, fig.width=8, warning=FALSE}
+BPmapping <- annFUN.org("BP", mapping = "org.Hs.eg.db", ID = "symbol") 
+genesUniverse <- unique(unlist(BPmapping))
+
+GO <- enrichGO(gene = res$POS, 
+               keyType = "SYMBOL", 
+               universe = genesUniverse, 
+               ont="BP", 
+               OrgDb = "org.Hs.eg.db")
+
+dotplot(GO, showCategory=10)
+```
+
+## References
