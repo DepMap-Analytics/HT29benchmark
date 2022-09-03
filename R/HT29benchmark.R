@@ -265,9 +265,10 @@ HT29R.evaluateReps <- function(refDataDir='./',
                    pch=21,            
                    bty = 'n')
 
-            cat(blue(paste(length(which(cc>=sigTH)),' pair-wise replicate comparisons (out of ',length(cc),
-            ') yield correlation scores greater or equal than Project Score QC threshold\n',sep='')))
-    
+            cat(magenta(paste('User screen results:\n',length(which(cc>=sigTH)),' pair-wise replicate comparisons (out of ',length(cc),
+            ') yield correlation scores greater or \nequal than Project Score QC threshold.\n',sep='')))
+            cat(magenta(paste(length(which(cc<sigTH)),' pair-wise replicate comparisons (out of ',length(cc),
+                              ') yield correlation scores lower \nthan Project Score QC threshold\n',sep='')))
         }
 
 
@@ -933,7 +934,7 @@ HT29R.sgRNAFCStats <- function(x, userFCs=NULL) {
   
   SE <- lapply(stats[1:NC,5:ncol(stats)],function(x){sd(x)/sqrt(NC)})
   
-  cat("HT29 sgRNAs logFCs statistics:\n\n")
+  cat(crayon::bold("HT-29 reference dataset, sgRNAs logFCs statistics:\n\n"))
   cat(paste(c('Avg. Range: ','; '),round(c(AvgStats[4],AvgStats[5]),digits=2),'±',round(c(SE$min,SE$max),digits=3),sep=''),'\n')
   cat(paste('Avg. Median: ',round(AvgStats[1],digits=3),'±',round(SE$median,digits=3),sep=''),'\n')
   cat(paste(c('Avg. IQR range: ','; '),round(c(AvgStats[11],AvgStats[12]),digits=2),'±',round(c(SE$Q0.25,SE$Q.075),digits=2),sep=''),'\n')
@@ -942,14 +943,16 @@ HT29R.sgRNAFCStats <- function(x, userFCs=NULL) {
   cat(paste('Avg. Kurtosis: ',round(AvgStats[8],digits=2),'±',round(SE$kurtosis,digits=2),sep=''),'\n')
   
   if(!is.null(userFCs)) {
-    cat('\nUser screen sgRNA logFCs statistics:\n\n')
+    cat(crayon::bold('\nUser screen, sgRNAs logFCs statistics:\n\n'))
     cat(paste(c('Range min: ','; Range max: '),round(c(userStats[,4], userStats[,5]), digits=3),sep=""),'\n')
     cat(paste('Median: ', round(userStats[,1], digits=3), sep=""),'\n')
     cat(paste(c('IQR min: ','; IQR max: '),round(c(userStats[,11], userStats[,12]), digits=3), sep=""),'\n')
     cat(paste(c('10th perc: ','; 90th perc: '),round(c(userStats[,10],userStats[,13]),digits=3),sep=""),'\n')
     cat(paste('Skewness: ', round(userStats[,7], digits=3), sep=""),'\n')
     cat(paste('Kurtosis: ', round(userStats[,8], digits=3), sep=""),'\n')
+  
     }
+
 
 }
 
