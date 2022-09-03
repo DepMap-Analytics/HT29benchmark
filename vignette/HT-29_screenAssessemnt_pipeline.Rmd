@@ -158,7 +158,16 @@ HT29R.evaluateReps(refDataDir = tmpDir,
                    display = TRUE, 
                    saveToFig = FALSE)
 ```
+The following code chunk performs the same comparisons of the previous one, but this time at the gene level, collapsing sgRNA depletion log fold-changes by averaging on a targeted gene basis.
 
+```{r echo=TRUE, fig.align='center', fig.height=8, fig.width=9, warning=FALSE}
+HT29R.evaluateReps(refDataDir = tmpDir,
+                   resDir = resultsDir,
+                   userFCs = UserData$logFCs, 
+                   geneLevel = TRUE, 
+                   display = TRUE, 
+                   saveToFig = FALSE)
+```
 
 
 # References
