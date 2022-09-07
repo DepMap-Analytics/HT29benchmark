@@ -2,7 +2,7 @@
 \alias{HT29R.runCrisprQC_Analysis}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-  Wrapper function: download reference data and run all QC analysis from low-level to high-level.
+  Wrapper function: download the HT-29 reference data and run all quality control (QC) analyses.
 }
 \description{
 }
@@ -16,25 +16,27 @@ HT29R.runCrisprQC_Analysis(data = c("FCs","rawCounts") ,
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{data}{
-      String parameter specifying what type of data to dowload.
-      Possible values are "rawCounts" for plain .tsv files containing raw sgRNA countsare or "FCs" (default) for R objects containing sgRNA normalised depletion fold-changes: data frames in which the first two columns contain sgRNAs' identifiers and HGNC symbols of targeted gene, followed by one column per screen replicate containing sgRNAs' fold-changes.
+      String specifying which data to dowload.
+      Possible values are:
+      \itemize{
+      \item "rawCounts" to download .tsv files containing raw sgRNA counts; 
+      \item "FCs" (default) to download .RData objects containing data.frames with normalised sgRNA depletion log fold-changes. The first two columns contain sgRNAs' identifiers and HGNC symbols of targeted gene, followed by one column per screen replicate with sgRNAs' log fold-changes;}
+}
 }
   \item{userFCs}{
-    Data from a user performed screen: A data frame with the same format of the R ojbects composing the reference dataset, i.e. first two columns containing sgRNAs' identifiers and HGNC symbols of targete gene (headers = sgRNA and gene, respectivley), followed by one column per screen replicate containing sgRNAs' fold-changes.
+    User-provided data: data frame with the first two columns containing sgRNAs' identifiers and HGNC symbols of targeted genes (headers = sgRNA and gene, respectivley), followed by one column per screen replicate containing sgRNAs' log fold-changes.
 }
   \item{positives}{
-     A vector of strings containing a reference set of positive cases: HGNC symbols of essential genes or identifiers of their targeting sgRNAs. This must be a subset disjointed from negatives. 
+     A vector with known essential genes (HGNC symbols or identifiers of their targeting sgRNAs) There must be no overlapping genes/sgRNAs between positives and negatives. 
       }
   \item{negatives}{
-    A vector of strings containing a reference set of negative cases: HGNC symbols of essential genes or identifiers of their targeting sgRNAs. This must be a subset disjointed from positives.
-  }
+A vector with known non-essential genes (HGNC symbols or identifiers of their targeting sgRNAs) There must be no overlapping genes/sgRNAs between positives and negatives.}
   \item{outdir}{
-       Output directory: a string specifying the directory where the output of this function (a pdf file with multiple plots) should be saved
+       Output directory: directory where the output of this function will be saved
        }
 }
 \details{
-The function create a folder named \code{"PLOTS"} in which the figures will be stored. The code will ask the user to provide two parameters whose are necessary for the low-level QC analysis. The first define the subset of guides the user intends to use (i.e., "All" for the sgRNAs targeting all genes in the genome-wide library and "HI" for the sgRNAs targeting only the most-informative and highly-reproducible ones as described in [1]), the second define the level of inspection (i.e., TRUE if inspecting at the gene-level or FALSE if at the guide-level). 
-
+The function creates a folder named \code{"PLOTS"} where the figures will be stored. The user is asked to provide two parameters necessary for low-level QC analysis. The first defines the subset of guides the user intends to use (i.e., "All" for all sgRNAs and "HI" for the most informative sgRNAs, selected as described in [1]); the second parameter defines the inspection level (i.e., TRUE if inspecting at the gene level or FALSE if at the sgRNA level). 
 }
 \value{
 }
@@ -42,7 +44,7 @@ The function create a folder named \code{"PLOTS"} in which the figures will be s
 [1] Behan FM, Iorio F, Picco G, Gonçalves E, Beaver CM, Migliardi G, et al. Prioritization of cancer therapeutic targets using CRISPR-Cas9 screens. Nature. 2019;568:511–6.
 }
 \author{
-Raffaele M. Iannuzzi & Francesco Iorio (fi1@sanger.ac.uk)
+Raffaele M. Iannuzzi & Francesco Iorio (\email{fi1@sanger.ac.uk})
 }
 \note{
 %%  ~~further notes~~

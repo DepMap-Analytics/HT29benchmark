@@ -2,7 +2,7 @@
 \alias{HT29R.PhenoIntensity}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-  High-level quality control (QC) analysis using Glass’s Delta scores. 
+  High-level quality controls (QC) using Glass’s Delta scores. 
 }
 \description{
 Assessing screens’ performance in recovering gene essentiality profiles using sets of known essential (True Positives, TP) and known non-essential (True Negatives, TN) genes.
@@ -18,36 +18,33 @@ HT29R.PhenoIntensity(refDataDir='./',
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{refDataDir}{
-      Reference HT29 dataset directory: a string specifying the location of the processed HT29 reference dataset.
+      Reference HT-29 dataset directory: a string specifying the location of the processed HT-29 reference dataset.
 }
   \item{resDir}{
-      Output directory: a string specifying the directory where the output of this function (a pdf file with multiple plots) should be saved.
+      Output directory: a string specifying the directory where the output of this function will be saved.
 }
   \item{userFCs}{
-      Data from a user performed screen: A data frame with the same format of the R ojbects composing the reference dataset, i.e. first two columns containing sgRNAs' identifiers and HGNC symbols of targete gene (headers = sgRNA and gene, respectivley), followed by one column per screen replicate containing sgRNAs' fold-changes.
+      Data from a user-provided screen: data frame with the first two columns containing sgRNAs' identifiers and HGNC symbols of targeted genes (headers = sgRNA and gene, respectivley), followed by one column per screen replicate containing sgRNAs' log fold-changes.
       }
   \item{geneLevel}{
-      Boolean parameter specifying whether the sgRNA profiles of depletion fold-changes should be collapsed by averaging them on a targeted gene basis. Default value = TRUE.
+      Boolean specifying whether the sgRNA profiles of depletion fold-changes should be collapsed by averaging them on a targeted gene basis. Default value = TRUE.
   }
   \item{saveToFig}{
-      Boolean parameter specifying whether to save all figures in PDF format. Default value = TRUE.
+      Boolean specifying whether to save all figures in PDF format. Default value = TRUE.
   }
   \item{display}{
-      Boolean parameter specifying whether to display graphics on R console. Default value = FALSE.
+      Boolean specifying whether to display graphics on R console. Default value = FALSE.
   }
 }
 \details{
-This function computes Glass’s Delta scores as a metric to quantify screen quality by leveraging the intensity of the phenotype exerted by the inactivation of prior-known essential (E), ribosomal (R) and non-essential (N) genes. These scores account for the difference between the average depletion FCs of the genes in E (respectively R) and that of genes known to be non-essential (i.e., genes that are rarely expressed across cell lines 3) (N) in relation to the standard deviation of the depletion FCs of the genes in E (respectively R), as it follows: 
-Glass’s Delta(X) score = |  mu(FC( x belongs to X )) - mu(FC( n belongs to N )) | / sigma(FC( x belongs to X )) where X belongs to {E, R} , mu, sigma indicate mean and standard deviation, respectively. 
-This function produces a pdf file (named \code{'ALLSCREENS_PHENOINTENSITY.pdf'} in the specified directory with multiple plots for each HT29 screen of the observed distributions of prior-known essential (E), ribosomal (R) and non-essential (N) genes coupled with the respective Glass's Delta values. If provided through the \code{userFCs} parameter, the function produces a second pdf file (named \code{'REFERENCE_PHENOINTENSITY.pdf'}) showing the same distributions for the user defined data. Boxplots summarizing the Glass's Delta score distributions of the two set of essential genes (i.e., Ribosomal protein genes (R) and Other essential genes (E)) across the six HT29 screens plus for the user defined screen (if provided) are also produced.
+This function computes Glass’s Delta scores as a metric to quantify screen quality by leveraging the intensity of the measured essentiality of prior-known essential (E), ribosomal (R) and non-essential (N) genes (see the Vignette for details).
+
+This function generates a PDF file (named \code{'ALLSCREENS_PHENOINTENSITY.pdf'} in the specified directory with multiple plots for each HT-29 screen. If provided through the \code{userFCs} parameter, the function produces a second PDF file (named \code{'REFERENCE_PHENOINTENSITY.pdf'}) for the user-provided data.
 }
 \value{
 }
-\references{
-[1] Behan FM, Iorio F, Picco G, Gonçalves E, Beaver CM, Migliardi G, et al. Prioritization of cancer therapeutic targets using CRISPR-Cas9 screens. Nature. 2019;568:511–6.
-}
 \author{
-Ichcha Manipur & Francesco Iorio (fi1@sanger.ac.uk)
+Ichcha Manipur & Francesco Iorio (\email{fi1@sanger.ac.uk})
 }
 \note{
 %%  ~~further notes~~
