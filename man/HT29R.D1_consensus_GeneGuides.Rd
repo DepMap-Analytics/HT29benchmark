@@ -2,7 +2,7 @@
 \alias{HT29R.consensus_GeneGuides}
 \docType{data}
 \title{
-Library specific sgRNAs' consensus across HT29 screens.
+Library specific sgRNAs' consensus across HT-29 screens.
 }
 \description{
   86875 KY-library[1] specific sgRNAs for evaluating CRISPR-Cas9 pooled genome-wide viability screen replicates.
