@@ -20,31 +20,35 @@ HT29R.expSimilarity(refDataDir='./',
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{refDataDir}{
-      Reference HT29 dataset directory: a string specifying the location of the processed HT29 reference dataset.
+      Reference HT-29 dataset directory: a string specifying the path of the processed HT-29 reference dataset.
 }
   \item{resDir}{
-      Output directory: a string specifying the directory where the output of this function (a pdf file with multiple plots) should be saved.
+      Output directory: a string specifying the path where the output of this function will be saved.
 }
   \item{userFCs}{
-      Data from a user performed screen: A data frame with the same format of the R ojbects composing the reference dataset, i.e. first two columns containing sgRNAs' identifiers and HGNC symbols of targete gene (headers = sgRNA and gene, respectivley), followed by one column per screen replicate containing sgRNAs' fold-changes.
+      User-provided data: data frame with the first two columns containing sgRNAs' identifiers and HGNC symbols of targeted genes (headers = sgRNA and gene, respectivley), followed by one column per screen replicate containing sgRNAs' log fold-changes.
 }
   \item{geneGuides}{
-      String parameter specifying whether to use all sgRNAs (genome-wide) or just the most reproducible and informative sgRNAs (n=838)
+      String specifying whether to use all sgRNAs (genome-wide) or just the most reproducible and informative sgRNAs (n=838)
 }
   \item{geneLevel}{
-      Boolean parameter specifying whether the sgRNA profiles of depletion fold-changes should be collapsed by averaging them on a targeted gene basis. Default value = TRUE.
+      Boolean specifying whether the sgRNA profiles of depletion log fold-changes should be averaged gene-wise. Default value = TRUE.
   }
   \item{Rscores}{
-      Boolean parameter specifying whether to compute correlation scores matrix between averaged screen replicates for the HT29 reference dataset as well as for user defined data. Default value = TRUE.
+      Boolean specifying whether to compute correlation scores matrix between averaged screen replicates for the HT-29 reference dataset as well as for user-provided data. Default value = TRUE.
   }
   \item{saveToFig}{
-      Boolean parameter specifying whether to save all figures in PDF format. Default value = TRUE.
+      Boolean specifying whether to save all figures. Default value = TRUE.
   }
   \item{display}{
-      Boolean parameter specifying whether to display graphics on R console. Default value = FALSE.
+      Boolean specifying whether to display graphics on the R console. Default value = FALSE.
   }
 }
 \details{
+This function compares inter-screen replicate Pearson's correlation scores for the HT-29 reference screen, as well as for the user-provided screen. This is performed as for the Project Score data [1]: considering only the set of the 838 most informative sgRNAs (in the \code{HT29R.reproducible_GeneGuides object}).
+
+Particularly, it generates a plot of Pearson’s correlation scores computed between sgRNA depletion log fold-change profiles of replicates for each of the six HT-29 reference screens, and between replicates of the user-provided screen (see the Vignette for details).
+
 This function computes correlation scores between each averaged screens' replicate across the HT29 reference dataset and between each averaged HT29 screens' replicate and user defined data (through the \code{userFCs} parameter) in order to measure depletion fold-changes (FCs) similarities across the HT29 screens and the user defined depletion fold-changes patterns. The analysis can be performed considering the set of 838 most informative sgRNAs only (named \code{HT29R.reproducible_GeneGuides} as seen for the \code{HT29R.evaluateReps} function, or considering the sgRNAs consensus (named \code{HT29R.consensus_GeneGuides}) across the reference and for the user defined screen. If the \code{geneLevel} parameter is set to TRUE, HGNC genes' symbols will be used instead of sgRNAs identifiers. The background distributions will be chosen based on the combination of parameters selected (e.g., if \code{geneGuides} parameter is set to "All" and \code{geneLevel} is set to TRUE, \code{HT29R.prSCORE_bkgr_screen_similarity} will be selected instead of \code{HT29R.prSCORE_bkgr_screen_similarity_sgRNA}). This function produces two pdf files (named '_QC_SIMILARITY_GENElevel.pdf' or '_QC_SIMILARITY_sgRNAlevel.pdf' and '_SCATTERPLOT_R_MATRIX_GENElevel.pdf' or '_SCATTERPLOT_R_MATRIX_sgRNAlevel.pdf') in the specified directory. The first pdf contains a plot of the kernel distribution of Pearson's correlation scores computed using the selected sgRNAs (through the \code{geneGuides} parameter) between pairs of HT29 screens and between reference screens versus the user defined data (if provided through the \code{userFCs} parameter). The Project Score background distribution is represented in grey. The same distributions are represented as boxplots coupled with two-sided t-test results for each comparison considered (Background vs Reference and, if provided, User-data vs Reference). If \code{Rscores} parameter is set to TRUE, the function saves scatterplot correlation matrix of the pair-wise Pearson’s correlation scores computed within HT-29 references and, if provided, between user versus HT-29 references.
 }
 

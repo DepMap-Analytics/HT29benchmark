@@ -5,7 +5,7 @@
   Low-level quality control (QC) analysis: reproducibility across technical replicates.
 }
 \description{
-Assessing CRISPR-Cas9 genome-wide pooled screens' reproducibility using Project Score metrics and criteria.
+Assessing CRISPR-Cas9 genome-wide pooled screens' reproducibility.
 }
 \usage{
 HT29R.evaluateReps(refDataDir='./',
@@ -18,31 +18,28 @@ HT29R.evaluateReps(refDataDir='./',
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{refDataDir}{
-      Reference HT29 dataset directory: a string specifying the location of the processed HT29 reference dataset.
+      Reference HT-29 dataset directory: a string specifying the path of the processed HT-29 reference dataset.
 }
   \item{resDir}{
-      Output directory: a string specifying the directory where the output of this function (a pdf file with multiple plots) should be saved.
+      Output directory: a string specifying the directory where the output of this function will be saved.
 }
   \item{userFCs}{
-      Data from a user performed screen: A data frame with the same format of the R ojbects composing the reference dataset, i.e. first two columns containing sgRNAs' identifiers and HGNC symbols of targete gene (headers = sgRNA and gene, respectivley), followed by one column per screen replicate containing sgRNAs' fold-changes.
+      Data from a user-provided screen: a data frame with the first two columns containing sgRNAs' identifiers and HGNC symbols of targeted genes (headers = sgRNA and gene, respectively), followed by one column per screen replicate containing sgRNAs' log fold-changes.
       }
   \item{geneLevel}{
-      Boolean parameter specifying whether the sgRNA profiles of depletion fold-changes should be collapsed by averaging them on a targeted gene basis. Default value = TRUE.
+      Boolean specifying whether the sgRNA profiles of depletion log fold-changes should be collapsed by averaging them on a targeted gene basis. Default value = TRUE.
   }
   \item{saveToFig}{
-      Boolean parameter specifying whether to save all figures in PDF format. Default value = TRUE.
+      Boolean specifying whether to save all figures. Default value = TRUE.
   }
   \item{display}{
-      Boolean parameter specifying whether to display graphics on R console. Default value = FALSE.
+      Boolean specifying whether to display graphics on the R console. Default value = FALSE.
   }
 }
 \details{
-This function computes correlation scores between each pair of screen replicates for the HT29 reference dataset as well as for used defined data.
-This is performed as for the Project Score data [1]: considering only a set of 838 most informative sgRNAs (in the \code{HT29R.reproducible_GeneGuides object}), defined as those targeting the same genes and with an average pairwise Pearson’s correlation > 0.6 between corresponding patterns of depletion fold-changes (FCs) across hundreds of screened cell lines. Per construction, the depletion patterns of these sgRNAs are both reproducible and informative (as they involve genes carrying an actual fitness signal). Computing correlation scores between replicates of the same screen on the domain of these sgRNAs only allows estimating a null distribution of replicate correlations and computing a reproducibility threshold defined as the minimal correlation score that should be observed between replicates of the same screen (R = 0.68, using the
-\code{HT29R.GL_prSCORE_rCorr_Reprod} object).
-This is performed as genome-wide correlation scores computed between replicates of the same CRISPR-Cas9 pooled genome-wide viability screen are generally always very high and indistiguishable from expectation due to only a small percentage of genes exerting an effect on cellular fitness upon knock-out.
+This function compares intra-screen replicate Pearson's correlation scores for the HT-29 reference screen, as well as for the user-provided screen. This is performed as for the Project Score data [1]: considering only the set of the 838 most informative sgRNAs (in the \code{HT29R.reproducible_GeneGuides object}).
 
-This function produces a pdf file showing the plot of the expected/observed distributions of replicate pair-wise correlation scores and reproducibility threshold from the Project Score dataset. Below this plots, the pair-wise correlation scores computed between replicates of the HT29 reference dataset are also plotted. If the user provides its own data (trough the \code{userFCs} parameter) then pair-wise correlation scores computed between replicates of this screens are overlaied on the kernel distributions. In this case, a specification of the number of replicates reaching threshold is printed in the console.
+Particularly, it generates a plot of Pearson’s correlation scores computed between sgRNA depletion log fold-change profiles of replicates for each of the six HT-29 reference screens, and between replicates of the user-provided screen (see the Vignette for details).
 }
 \value{
 }
@@ -50,7 +47,7 @@ This function produces a pdf file showing the plot of the expected/observed dist
 [1] Behan FM, Iorio F, Picco G, Gonçalves E, Beaver CM, Migliardi G, et al. Prioritization of cancer therapeutic targets using CRISPR-Cas9 screens. Nature. 2019;568:511–6.
 }
 \author{
-Ichcha Manipur, Raffaele Iannuzzi, Francesco Iorio (fi1@sanger.ac.uk)
+Ichcha Manipur, Raffaele Iannuzzi, Francesco Iorio (\email{fi1@sanger.ac.uk})
 }
 \note{
 %%  ~~further notes~~

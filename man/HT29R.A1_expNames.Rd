@@ -9,7 +9,7 @@ Labels of individual HT-29 screen experiments
 }
 \usage{data("HT29R.expNames")}
 \format{
-  A vector of 6 strings, containing each the name of one experiment.
+  A vector of 6 strings, containing the names of each experiment.
 }
 \examples{
 data(HT29R.expNames)
