@@ -1,6 +1,6 @@
 ---
 title: "HT-29 CRISPR-Cas9 screen assessment"
-author: "Raffaele M. Iannuzzi, Francesco Iorio"
+author: "Raffaele M. Iannuzzi, Aurora Savino, Francesco Iorio"
 date: "`r Sys.Date()`"
 output: pdf_document
 pdf_document: 
