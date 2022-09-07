@@ -2,20 +2,21 @@
 \alias{HT29R.prSCORE_bkgr_screen_similarity_HI}
 \docType{data}
 \title{
-  Pair-wise screen replicate correlations (i.e., background correlations) from Project Score considering most-informative sgRNAs.
+  Pairwise correlations between screens replicates (i.e., background correlations) from Project Score using the most-informative genes.
 }
 \description{
-  Correlation scores obtained by comparing genes' essentiality profiles (i.e., genes' depletion log fold-changes) between all possible pairs of sample (325 x 325), considering the Project Score[1] data matrix for 308 genes x 325 samples (= 324 cell lines + HT29v1.1).
+  Pearson's correlation scores obtained by comparing genes' essentiality profiles (i.e., genes' depletion log fold-changes) between all possible pairs of sample (325 x 325) from the Project Score [1] with the Kosuke Yusa library [2] informative/reproducible genes x 325 samples (= 324 cell lines + HT29v1.1).
 }
 \usage{data("HT29R.prSCORE_bkgr_screen_similarity_HI")}
 \format{
   A numerical vector of Pearson's correlation coefficents.
 }
 \details{
-  A numerical vector with 52650 entries, containing the correlation scores obtained by comparing profiles of 308 genes' depletion fold-changes between all possible pairs of individual experiment (i.e., the "HI" gene-level background correlation). See function \code{HT29R.expSimilarity} and \code{HT29R.reproducible_GeneGuides} descriptions in reference the manual for further details.
+  A numerical vector with 52,650 entries, containing the correlation scores obtained by comparing profiles of 308 genes' depletion log fold-changes between all possible pairs of individual experiments (i.e., the "HI" gene-level background correlation). See function \code{HT29R.expSimilarity} and \code{HT29R.reproducible_GeneGuides} descriptions in the reference manual for further details.
 }
 \references{
 [1] Behan FM, Iorio F, Picco G, Gonçalves E, Beaver CM, Migliardi G, et al. Prioritization of cancer therapeutic targets using CRISPR-Cas9 screens. Nature. 2019;568:511–6.
+[2] Tzelepis K, Koike-Yusa H, De Braekeleer E, Li Y, Metzakopian E, Dovey OM, et al. A CRISPR Dropout Screen Identifies Genetic Vulnerabilities and Therapeutic Targets in Acute Myeloid Leukemia. Cell Rep. 2016;17:1193–205.
 }
 \examples{
 

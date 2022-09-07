@@ -37,7 +37,7 @@ HT29R.evaluateReps(refDataDir='./',
   }
 }
 \details{
-This function compares intra-screen replicate Pearson's correlation scores for the HT-29 reference screen, as well as for the user-provided screen. This is performed as for the Project Score data [1]: considering only the set of the 838 most informative sgRNAs (in the \code{HT29R.reproducible_GeneGuides object}).
+This function computes intra-screen replicate Pearson's correlation scores for the HT-29 reference screen, as well as for the user-provided screen. This is performed as for the Project Score data [1]: considering only the set of the 838 most informative sgRNAs (in the \code{HT29R.reproducible_GeneGuides object}).
 
 Particularly, it generates a plot of Pearson’s correlation scores computed between sgRNA depletion log fold-change profiles of replicates for each of the six HT-29 reference screens, and between replicates of the user-provided screen (see the Vignette for details).
 }

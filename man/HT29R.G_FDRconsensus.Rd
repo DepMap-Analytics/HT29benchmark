@@ -2,10 +2,12 @@
 \alias{HT29R.FDRconsensus}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-  Defining a positive consensus of essential gene across the HT29 screens using the FDR ranking method.
+  Defining a positive consensus of essential genes across the HT-29 reference screens.
 }
 \description{
-The FDR method is applied for each HT29 screen, then a strict intersection of genes classified as "essential" at a defined FDR threshold (0.05 by default) is taken. The positive consensus of genes identified is used as a probe to measure the distance (Cohen's or Glass's Delta) between the depletion fold-changes (FCs) of the positive and the negative consensus of genes for each screen, which is also computed by the same function. The function uses a set of prior-known essential and non essential genes (respectively the \code{BAGEL_essential} and \code{BAGEL_nonEssential}) as reference. 
+For each reference HT-29 screen a set of genes significantly depleted at a specified FDR (False Discovery Rate) threshold and its complement, i.e. a set of genes not significantly depleted, are defined using reference sets of essential and non-essential genes [1]. 
+
+HT-29-specific essential genes are obtained as the intersection between all lists of depleted genes across each HT-29 reference screen. Conversely, HT-29-specific non-essential genes are defined as the intersection between all lists of genes not significantly depleted across each HT-29 reference screen.
 }
 \usage{
 HT29R.FDRconsensus(refDataDir="./", 
@@ -19,37 +21,37 @@ HT29R.FDRconsensus(refDataDir="./",
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{refDataDir}{
-      Reference HT29 dataset directory: a string specifying the location of the processed HT29 reference dataset.
+      Reference HT-29 dataset directory: a string specifying the path of the processed HT-29 reference dataset.
 }
   \item{resDir}{
-      Output directory: a string specifying the directory where the output of this function (a pdf file with multiple plots) should be saved.
+      Output directory: a string specifying the directory where the output of this function will be saved.
 }
   \item{userFCs}{
-      Data from a user performed screen: A data frame with the same format of the R ojbects composing the reference dataset, i.e. first two columns containing sgRNAs' identifiers and HGNC symbols of targeted gene (headers = sgRNA and gene, respectivley), followed by one column per screen replicate containing sgRNAs' fold-changes.
+      Data from a user-provided screen: a data frame with the first two columns containing sgRNAs' identifiers and HGNC symbols of the targeted genes (headers = sgRNA and gene, respectivley), followed by one column per screen replicate containing sgRNAs' log fold-changes.
       }
   \item{distance}{
-  Type of distance the user want to measure between the two consensus: A character string indicating "Cohen's" for the Cohen's d or "GlDelta" for Glass's Delta.
+  Distance to measure the difference between the two consensus lists: "Cohen's" for Cohen's d or "GlDelta" for Glass's Delta.
   }
   \item{FDRth}{
-   	If different from NULL, will be a numerical value >=0 and <=1 specifying the false discovery rate threshold at which fixed recall will be computed. Default value = 0.05.
+   False discovery rate threshold at which fixed recall will be computed. Default value = 0.05.
   }
   \item{saveToFig}{
-      Boolean parameter specifying whether to save all figures in PDF format. Default value = TRUE.
+      Boolean specifying whether to save all figures. Default value = TRUE.
   }
   \item{display}{
-      Boolean parameter specifying whether to display graphics on R console. Default value = FALSE.
+      Boolean specifying whether to display graphics on the R console. Default value = FALSE.
   }
 }
 \details{
-This function produces a pdf file (named \code{'FDR_CONSENSUS_DIST.pdf'} in the specified directory with multiple plots showing the depletion fold-changes (FCs) of the positive and negative consensus of genes for each HT29 screen plus for the user defined screen if provided through the \code{userFCs} parameter. A second plot shows the distribution of the distances computed for each screen. If data are provided by the user, it allows to measure how far the HT29-specific genes log fold-changes are from the reference.  
+This function generates a PDF file (named \code{'FDR_CONSENSUS_DIST.pdf'} with multiple plots showing the depletion fold-changes (FCs) of the positive and negative consensus of genes for each HT-29 screen plus for the user screen, if provided. A second plot displays the distribution distances between known essential and non-essential genes in each screen (see the Vignette for details).
 }
 \value{
 }
 \references{
-[1] Behan FM, Iorio F, Picco G, Gonçalves E, Beaver CM, Migliardi G, et al. Prioritization of cancer therapeutic targets using CRISPR-Cas9 screens. Nature. 2019;568:511–6.
+[1] Hart Traver and Moffat Jason. BAGEL: a computational framework for identifying essential genes from pooled library screens. BMC Bioinformatics. 2016;17:164.
 }
 \author{
-Raffaele Iannuzzi & Francesco Iorio (fi1@sanger.ac.uk)
+Raffaele Iannuzzi & Francesco Iorio (\email{fi1@sanger.ac.uk})
 }
 \note{
 %%  ~~further notes~~
