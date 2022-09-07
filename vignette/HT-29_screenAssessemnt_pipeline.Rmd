@@ -15,17 +15,18 @@ knitr::write_bib(x = c("knitr", "rmarkdown") , file = "test.bib")
 
 ## Introduction
 
-This document guides the user through (and shows results from) the execution of functions included in the \textit{HT29benchmark} R package. The aim of these functions is to assess novel experimental pipelines for genome-wide CRISPR-Cas9 screens upon the execution of a single calibration screen of the HT-29 human colon cancer cell line (<https://www.cellosaurus.org/CVCL_0320>) employing a commercially available genome-wide library of single guide RNAs (the Sanger library) (@Tzelepis2016-vb) (AddGene: 67989) and setting described in @Behan2019-wu.\
+This document guides the user through (and shows results from) the execution of functions included in the \textit{HT29benchmark} R package. The aim of these functions is to assess novel experimental pipelines for genome-wide CRISPR-Cas9 screens upon the execution of a single calibration screen of the HT-29 human colon cancer cell line (<https://www.cellosaurus.org/CVCL_0320>) employing a commercially available genome-wide library of single guide RNAs (the Sanger library) (@Tzelepis2016-vb) (AddGene: 67989) and setting described in @Behan2019-wu.
 
-The user-provided calibration-screen data is evaluated through different metrics. Outcomes are then contrasted with those obtained when applying the same metrics to a high-quality dataset containing results from screening the HT-29 in multiple batches with the Sanger library (the HT-29 reference dataset).\
+The code provided can be executed to reproduce the figures of the manuscript describing the HT-29 reference dataset and the \textit{HT29benchmark} package (currently under review) and to assess a  user-provided calibration screens. 
+Whether to employ the example data or novel input data for the quality assessment can be determined via commenting/un-commenting specific code portions as described in this document.
 
-Portions of and text and code in this document can be commented/removed to generated a quality-control assessment report.\
+The user-provided screen is evaluated through different metrics, and outcomes are then contrasted with those obtained analysing a high-quality screen of the HT-29 cell line, screened in multiple batches with the Sanger library (the HT-29 reference dataset).
 
-The HT29benchmark R package is available at: <https://github.com/DepMap-Analytics/HT29benchmark>; with user reference manual available at <https://github.com/DepMap-Analytics/HT29benchmark/blob/master/HT29benchmark.pdf>. A manuscript describing the HT-29 reference dataset and the \textit{HT29benchmark} package is currently under review. The HT-29 reference dataset can be downaloded through a dedicated function of the \textit{HT29benchmark} package, as well is available on FigShare (@Behan_M2022-ks).
+The HT29benchmark R package is available at: <https://github.com/DepMap-Analytics/HT29benchmark>; with user reference manual available at <https://github.com/DepMap-Analytics/HT29benchmark/blob/master/HT29benchmark.pdf>. The HT-29 reference dataset can be downaloded through a dedicated function of the \textit{HT29benchmark} package, as well is available on FigShare (@Behan_M2022-ks).
 
 ## Environment preparation and data retrival
 
-The following code chunks load all required libraries installing the missing ones from Bioconductor and CRAN:\
+The following code loads all required libraries installing the missing ones from Bioconductor and CRAN:\
 
 ```{r eval=FALSE, include=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
 if (!require("BiocManager", quietly = TRUE))
@@ -67,13 +68,18 @@ resultsDir <- paste(tmpDir,"USER/", sep="")
 ```
 
 The following code downloads the HT-29 reference dataset (i.e. sgRNA depletion log fold-changes from high-quality HT-29 screens) and stores it in the HT29_resFolder directory.\
+Additionally, individual reference screens file names are stored in the ref_fn variable\
 
 ```{r eval=FALSE, echo=TRUE, include=TRUE}
 HT29R.downloadRefData(destFolder = tmpDir, whatToDownload = 'FCs')
 ```
 
-The code chunk below downloads a demo screen in the 'HT29R_resFolder'. This encompasses data from a 6-replicates mid-quality screen of the HT-29 cell line, employing the Sanger library [@Tzelepis2016-vb] and setting described in @Behan2019-wu (see manuscript for more details), and it is available on FigShare (@Behan_M2022-ks).\
+```{r echo=TRUE}
+ref_fn <- dir(tmpDir)
+ref_fn <- grep('_foldChanges.Rdata',ref_fn,value=TRUE)
+```
 
+The code below downloads a demo screen in the 'HT29R_resFolder'. This encompasses data from a 6-replicates mid-quality screen of the HT-29 cell line, employing the Sanger library [@Tzelepis2016-vb] and using settings described in @Behan2019-wu, available on FigShare (@Behan_M2022-ks).\
 IMPORTANT: The following code should not be executed to perform the analysis of real user-data. See further code chunk.
 
 ```{r eval=FALSE}
@@ -85,34 +91,22 @@ download.file(URL, destfile = paste0(tmpDir, '/Example_UserScreen.tsv'))
 userDataPATH <- paste0(tmpDir, '/Example_UserScreen.tsv')
 ```
 
-IMPORTANT: The following code should be uncommented and executed for the analysis of real user-data. The path to the real user dataset should be provided. This should be string specifying the path to a tsv file containing the raw sgRNA counts of a
-calibration screen of the HT-29 cell line performed with the Sanger library [@Tzelepis2016-vb] and experimental setting described in @Behan2019-wu\
-The format of this file should be as it follows. The file should be tab delimited, it should contain one row per sgRNA and the following columns/headers:
+IMPORTANT: The following code should be un-commented and executed for the analysis of real user-data. The path to the real user dataset should be provided. This should be string specifying the path to a tsv file containing the raw sgRNA counts of a HT-29 calibration screen performed with the Sanger library [@Tzelepis2016-vb] and the experimental settings described in @Behan2019-wu\
+The file should be tab delimited, it should contain one row per sgRNA and the following columns:
 
   + sgRNA: column with alphanumerical identifiers of the sgRNA under consideration;
   + gene: column with HGNC symbols of the genes targeted by the sgRNA under consideration;
-
-followed by the columns containing the sgRNAs' counts for the controls and columns for library transfected samples (one column per replicate).
+  + columns containing the sgRNAs' counts for the controls;
+  + columns for library transfected samples (one column per replicate).
 
 ```{r echo=TRUE}
 ## userDataPATH <- 'PATH/TO/REAL-USER-DATA/userdata.tsv'
 ```
 
-The following code download sgRNA depletion fold-changes from the HT-29 reference dataset and stores them into the HT29_resFolder directory.
-Additionally, individual reference screens file-names are stored in the ref_fn variable\
-
-```{r eval=FALSE, echo=TRUE}
-HT29R.downloadRefData(destFolder = tmpDir, whatToDownload = 'FCs')
-```
-
-```{r echo=TRUE}
-ref_fn <- dir(tmpDir)
-ref_fn <- grep('_foldChanges.Rdata',ref_fn,value=TRUE)
-```
-
 ## User data normalisation and computation of depletion log fold-changes
 
-The following code normalises user-data sgRNA counts, computes log fold-changes, stores results in the USER subfolder and produces the plots below with distributions of sgRNA counts pre-/post-normalisation and depletion log fold-changes across samples. The ccr.NormfoldChanges function is from our previously published CRISPRcleanR package (@Iorio2018-qt). Results are also stored in the UserData variable. This is a list containing two data frames respectively including the normalised sgRNAs' counts (norm_counts) and the sgRNAs' log fold changes (logFCs). First two columns in these data frames contain sgRNAs' identifiers and HGNC symbols of targete gene, respectively.
+The following code normalises user-provided sgRNA counts, computes log fold-changes, stores results in the USER subfolder and produces the plots below with distributions of sgRNA counts pre-/post-normalisation and depletion log fold-changes across samples. The ccr.NormfoldChanges function comes from our previously published CRISPRcleanR package (@Iorio2018-qt). 
+Results are also stored in the UserData variable. This is a list containing two data frames respectively including the normalised sgRNAs' counts (norm_counts) and the sgRNAs' log fold-changes (logFCs). The first two columns in these data frames contain sgRNAs' identifiers and HGNC symbols of targeted genes, respectively.
 
 ```{r fig.align='center', fig.height=6, fig.width=12}
 data('KY_Library_v1.0')
@@ -129,8 +123,7 @@ UserData <- ccr.NormfoldChanges(filename = userDataPATH,
 ## Inspection of sgRNA depletion log fold-change distributions
 
 The following code allows visualising (through dedicated plots) distributions of sgRNA log fold-changes from the HT-29 reference dataset (across screens) as well as user screen data.\
-
-Average values and confidence intervals of these distribution are also visualised and can be compared.\ 
+Average values and confidence intervals of these distribution are also plotted and can be compared.\ 
 
 ```{r echo=TRUE, fig.align='center', fig.height=5, fig.width=10}
 HT29R.FCdistributions(refDataDir = tmpDir,
@@ -143,11 +136,14 @@ HT29R.FCdistributions(refDataDir = tmpDir,
 
 ## Intra-screen reproducibility
 
-The following code evaluates and compares inter-screen replicate similarities for the HT-29 reference screen, as well as for the user-provided screen.
-Particularly, it shows Pearson’s correlation scores computed between sgRNA depletion log fold-change 
-profiles of replicates for each of the six HT-29 reference screens (blue dots), and between replicates of the user-provided screen (pink dots).
+The following code evaluates and compares intra-screen replicate similarities for the HT-29 reference screen, as well as for the user-provided screen.
+Particularly, it shows Pearson’s correlation scores computed between sgRNA depletion log fold-change profiles of replicates for each of the six HT-29 reference screens (blue dots), and between replicates of the user-provided screen (pink dots).
 These correlation scores are computed considering only depletion log fold-changes of highly
-reproducible/informative sgRNAs only (defined as in @Behan2019-wu). These scores are compared with correlation scores from comparing replicates of the same screen across > 200 cell lines (from Project Score (@Behan2019-wu, @Dwane2021-lx), in green), those obtained from comparing each possible pair of replicates, regardless the screen (again from Project Score (@Behan2019-wu, @Dwane2021-lx), in gray) and a quality threshold, derived from these two distributions, as defined in @Behan2019-wu.
+reproducible/informative sgRNAs (defined as in @Behan2019-wu). These scores are evaluated through comparing them with:
+
+  + correlation scores obtained comparing replicates of the same screen across > 200 cell lines (from Project Score (@Behan2019-wu, @Dwane2021-lx), in green);
+  + correlation scores obtained from comparing each possible pair of replicates, regardless the screen (again from Project Score (@Behan2019-wu, @Dwane2021-lx), in gray);
+  + a quality threshold, derived from these two distributions, as defined in @Behan2019-wu.
 
 
 ```{r echo=TRUE, fig.align='center', fig.height=8, fig.width=9, warning=FALSE}
@@ -171,10 +167,15 @@ HT29R.evaluateReps(refDataDir = tmpDir,
 
 ## Inter-screen similarity
 
-Text
+Inter-screen similarities are then evaluated for the HT-29 reference screens (green distribution), as well as for the user-provided screen (pink dots).
+Particularly, figures show Pearson’s correlation scores computed between replicate-averaged sgRNA depletion log fold-change profiles for each of the six HT-29 reference screens (green), and between the user-provided screen with each reference screen (pink). The expected random scores are computed between each possible pair of screens in Project Score (grey).
+P-values are obtained with a two-sided t-test comparing background and reference distributions or reference and user-data scores. 
+Scatterplots display a detailed correlation matrix of pairwise Pearson’s correlation scores between different HT-29 reference screens and between user-provided versus HT-29 reference screens.
+
+The "geneGuides" parameter in the HT29.expSimilarity function defines whether all sgRNAs or only highly informative sgRNAs (defined as in @Behan2019-wu) will be used for this assessment (geneGuides="All" or geneGuides="HI", respectively). In this example, all guides have been used.
 
 ```{r echo=TRUE, fig.align='center', fig.height=7, fig.width=7, warning=FALSE}
-RES <- HT29R.expSimilarity(refDataDir = tmpDir, 
+RES<-HT29R.expSimilarity(refDataDir = tmpDir, 
                            resDir = resultsDir,
                            geneGuides = "All",
                            geneLevel = FALSE,
@@ -184,11 +185,10 @@ RES <- HT29R.expSimilarity(refDataDir = tmpDir,
                            userFCs = UserData$logFCs)
 ```
 
-
-Same as before but at the gene level.
+Similar plots can be generated changing the "geneLevel" parameter. With geneLevel=TRUE, a gene level analysis is performed. 
 
 ```{r echo=TRUE, fig.align='center', fig.height=7, fig.width=7, warning=FALSE}
-RES <- HT29R.expSimilarity(refDataDir = tmpDir, 
+RES<-HT29R.expSimilarity(refDataDir = tmpDir, 
                            resDir = resultsDir,
                            geneGuides = "All",
                            geneLevel = TRUE,
@@ -200,21 +200,9 @@ RES <- HT29R.expSimilarity(refDataDir = tmpDir,
 
 ## Phenotype intensity
 
-Text
+A high-quality screen is expected to retrieve known essential genes as highly essential (i.e. with low logFC). Hence, both reference screens and user-provided data are assessed in this respect, using previosuly-defined essential and non-essential genes (@Hart2016-dz), and genes coding for ribosomal proteins, fundamental components of cells' machinery.
 
-```{r echo=TRUE, fig.align='center', fig.height=10, fig.width=15, warning=FALSE}
-layout(matrix(1, nrow=1, ncol=1, byrow=TRUE))
-
-HT29R.PhenoIntensity(refDataDir = tmpDir,
-                     resDir = resultsDir,
-                     userFCs = UserData$logFCs, 
-                     geneLevel = FALSE,
-                     saveToFig = FALSE,
-                     display = TRUE)
-
-```
-
-Same as before but at the gene level
+Distributions of depletion log fold-changes for gene subsets are plotted for each reference HT-29 screen and for the user-provided screen. Vertical lines indicate mean logFCs for each distribution. The Glass’s $\Delta$ (GD) distances between distributions for reference essential genes or ribosomal protein genes with respect to non-essential genes are reported at the top of each plot.
 
 ```{r echo=TRUE, fig.align='center', fig.height=10, fig.width=15, warning=FALSE}
 layout(matrix(1, nrow=1, ncol=1, byrow=TRUE))
@@ -230,7 +218,10 @@ HT29R.PhenoIntensity(refDataDir = tmpDir,
 
 ## ROC analysis
 
-Text
+Receiver Operating Curve (ROC) and Precision/Recall (PrRc) curves obtained when classifying genes based on their depletion log fold-change according to previously defined lists of essential and non-essential genes (@Hart2016-dz).
+If geneLevel is TRUE, the user must provide the lists of known essential and non-essential gene HGNC symbols, otherwise sgRNA identifiers must be provided. The conversion from gene names to sgRNA IDs can be performed with the ccr.genes2sgRNAs function.
+
+At the sgRNA level:
 
 ```{r echo=TRUE, fig.align='center', fig.height=5, fig.width=15, warning=FALSE}
 
@@ -250,8 +241,7 @@ HT29R.ROCanalysis(refDataDir = tmpDir,
                   display = TRUE)
 ```
 
-
-Same as before, but at the gene level
+At the gene level:
 
 ```{r echo=TRUE, fig.align='center', fig.height=5, fig.width=15, warning=FALSE}
 
@@ -264,10 +254,15 @@ HT29R.ROCanalysis(refDataDir = tmpDir,
                   display = TRUE)
 ```
 
+## HT-29-specific fitness genes and their characterisation
 
-## HT-29-specifics fitness genes at 5% FDR and their characterisation
+We assembled a list of genes that are significantly depleted across all the reference HT-29 screens and can thus be used to evaluate new user-provided HT-29 screens.
+For each reference HT-29 screen we identified a set of genes significantly depleted at a 5% FDR (False Discovery Rate) and its complement, i.e. a set of genes not significantly depleted, using reference sets of essential and non-essential genes (@Hart2016-dz). 
 
-Text
+HT-29-specific essential genes are defined as the intersection between all lists of depleted genes across each HT-29 reference screen. Conversely, HT-29-specific non-essential genes are defined as the intersection between all lists of genes not significantly depleted across each HT-29 reference screen.
+
+Below, the log fold-changes for essential and non-essential genes defined above are shown for each reference screen. Distribution of distances between HT-29-specific positive and negative essential genes, quantified through Cohen's d, is shown for the reference HT-29 screens (boxplot) and for user-provided data (pink dot).
+
 
 ```{r echo=TRUE, fig.align='center', fig.height=8, fig.width=6, warning=FALSE}
 
@@ -280,16 +275,16 @@ res <- HT29R.FDRconsensus(refDataDir = tmpDir,
                           display = TRUE)
 ```
 
-Overlap with prior known (BAGEL) essential genes.
+Overlap between the HT-29 positive consensus and prior known essential genes (@Hart2016-dz) shows a significant enrichment.
 
 ```{r echo=TRUE, warning=FALSE}
 HT29R.FDRenrichment(consensus = res$POS, background=res$Universe, labels = BAGEL_essential)
 ```
 
-## GO analysis
-
 Top 10 Gene Ontology categories (Biological Process, BP) enriched for
-the HT-29 Positive Consensus
+the HT-29 Positive Consensus. 
+The function annFUN.org retrieves genes' annotation to biological processes (BPs), returning a list with BPs and corresponding gene symbols. 
+To test the enrichment, all the genes assigned to at least one BP category are employed as part of the universe, and the enrichment is computed through the enrichGO function from the enrichr package.
 
 ```{r echo=TRUE, fig.height=5, fig.width=8, warning=FALSE}
 BPmapping <- annFUN.org("BP", mapping = "org.Hs.eg.db", ID = "symbol") 
