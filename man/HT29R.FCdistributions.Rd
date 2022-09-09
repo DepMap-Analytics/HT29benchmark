@@ -5,7 +5,7 @@
   Screens depletion fold-changes (FCs) average statistics and distributions.
 }
 \description{
-  Average parameters (and confidence intervals) of sgRNA logFCs distributions observed when screening HT-29 with reagent and experimental settings described in Behan et al., plus user-provided screen statistics.
+  The function computes sgRNA logFCs statistics and distributions for the reference HT-29 screening obtained with reagent and experimental settings described in [1], and for an optional user-provided screen.
 } 
 \usage{
 HT29R.FCdistributions(refDataDir='./',
@@ -19,26 +19,26 @@ HT29R.FCdistributions(refDataDir='./',
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{refDataDir}{
-      Reference HT29 dataset directory: a string specifying the location of the processed HT29 reference dataset.
+      Reference HT-29 dataset directory: a string specifying the path of the processed HT-29 reference dataset.
   }
   \item{resDir}{
-      Output directory: a string specifying the directory where the output of this function (a pdf file with multiple plots) should be saved.
+      Output directory: a string specifying the directory where the output plots should be saved.
   }
   \item{userFCs}{
-      Data from a user performed screen: A data frame with the same format of the R ojbects composing the reference dataset, i.e. first two columns containing sgRNAs' identifiers and HGNC symbols of targete gene (headers = sgRNA and gene, respectively), followed by one column per screen replicate containing sgRNAs' fold-changes.
+      Data from a user-provided screen: a data frame with the first two columns containing sgRNAs' identifiers and HGNC symbols of targeted genes (headers = sgRNA and gene, respectively), followed by one column per screen replicate containing sgRNAs' log fold-changes.
   }
   \item{stats}{
-      Boolean parameter specifying whether to show average statistics. Default is TRUE.
+      Boolean specifying whether to show average statistics. Default is TRUE.
   }
   \item{saveToFig}{
-      Boolean parameter specifying whether to save all figures in PDF format. Default is TRUE.
+      Boolean specifying whether to save all figures. Default is TRUE.
   }
   \item{display}{
-      Boolean parameter specifying whether to display graphics on R console. Default is FALSE.
+      Boolean specifying whether to display graphics on the R console. Default is FALSE.
   }
 }
 \details{
-  The function computes sgRNAs logFCs’ statistics such as average range, median, interquartile range, 10th-90th percentile range, skewness and kurtosis across the six HT-29 screens plus the User-defined screen, if provided.
+  The function computes sgRNAs logFCs’ statistics such as average range, median, inter-quartile range, 10th-90th percentile range, skewness and kurtosis across the six HT-29 screens plus the user-defined screen, if provided.
 }
 
 \value{
@@ -47,7 +47,7 @@ HT29R.FCdistributions(refDataDir='./',
 [1] Behan FM, Iorio F, Picco G, Gonçalves E, Beaver CM, Migliardi G, et al. Prioritization of cancer therapeutic targets using CRISPR-Cas9 screens. Nature. 2019;568:511–6.
 }
 \author{
-Raffaele Iannuzzi, Ichcha Manipur, Francesco Iorio 
+Raffaele Iannuzzi, Ichcha Manipur, Francesco Iorio (\email{fi1@sanger.ac.uk})
 }
 \note{
 %%  ~~further notes~~
